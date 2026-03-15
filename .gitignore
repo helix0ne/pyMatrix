@@ -25,7 +25,7 @@ env/
 .env.production
 credentials.json
 secrets.json
-model_manager/config/settings.json
+pymatrix/config/settings.json
 
 # ── OS ──
 .DS_Store
@@ -39,6 +39,7 @@ screenshots/
 
 # ── AI Universe Map output ──
 ai_universe_map/output/
+pymatrix/universe_map_output/
 
 # ── Claude ──
 .claude/
