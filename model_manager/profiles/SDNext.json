@@ -1,0 +1,27 @@
+{
+  "name": "SD.Next (VladAutomatic)",
+  "display_name": "SD.Next",
+  "package_folder": "vladmandic-automatic",
+  "enabled": true,
+  "description": "SD.Next - Erweiterte A1111-Variante",
+  "rules": [
+    { "source_types": ["StableDiffusion"],          "target": "models/Stable-diffusion" },
+    { "source_types": ["Diffusers"],                "target": "models/Diffusers" },
+    { "source_types": ["VAE"],                      "target": "models/VAE" },
+    { "source_types": ["Embeddings"],               "target": "models/embeddings" },
+    { "source_types": ["Hypernetwork"],             "target": "models/hypernetworks" },
+    { "source_types": ["Codeformer"],               "target": "models/Codeformer" },
+    { "source_types": ["GFPGAN"],                   "target": "models/GFPGAN" },
+    { "source_types": ["BSRGAN"],                   "target": "models/BSRGAN" },
+    { "source_types": ["ESRGAN"],                   "target": "models/ESRGAN" },
+    { "source_types": ["RealESRGAN"],               "target": "models/RealESRGAN" },
+    { "source_types": ["ScuNET"],                   "target": "models/ScuNET" },
+    { "source_types": ["SwinIR"],                   "target": "models/SwinIR" },
+    { "source_types": ["LDSR"],                     "target": "models/LDSR" },
+    { "source_types": ["TextEncoders"],             "target": "models/CLIP" },
+    { "source_types": ["Lora"],                     "target": "models/Lora" },
+    { "source_types": ["LyCORIS"],                  "target": "models/LyCORIS" },
+    { "source_types": ["ControlNet", "T2IAdapter"], "target": "models/ControlNet" },
+    { "source_types": ["DiffusionModels"],          "target": "models/UNET" }
+  ]
+}

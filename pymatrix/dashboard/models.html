@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyMatrix — Model Atelier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400;1,600&family=IBM+Plex+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ── Design Tokens ───────────────────────────────────────── */
+:root {
+  --paper:     #f5f0e8;
+  --paper-2:   #ede8df;
+  --paper-3:   #e4ddd3;
+  --ink:        #1a1612;
+  --ink-mid:    #4a4540;
+  --ink-faint:  #9a9590;
+  --rust:       #c4622d;
+  --rust-light: #e87d49;
+  --rust-pale:  #f5e6dc;
+  --gold:       #b8943a;
+  --gold-pale:  #f5eddc;
+  --teal:       #2d7a6c;
+  --teal-pale:  #daf0ec;
+  --violet:     #5a3d8a;
+  --violet-pale:#e8e0f0;
+  --head:   'Playfair Display', Georgia, serif;
+  --ui:     'Syne', sans-serif;
+  --mono:   'IBM Plex Mono', 'Courier New', monospace;
+}
+
+/* ── Reset & Base ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-weight: 300;
+  min-height: 100vh;
+}
+
+/* Fine paper grain */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.6;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.masthead {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+}
+.masthead-top {
+  display: flex;
+  align-items: baseline;
+  padding: 14px 32px 10px;
+  gap: 24px;
+  border-bottom: 1px solid var(--paper-3);
+}
+.masthead-wordmark {
+  font-family: var(--head);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.wordmark-py { color: var(--rust); font-style: italic; }
+.wordmark-matrix { color: var(--ink); }
+.masthead-edition {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-left: 1px solid var(--paper-3);
+  padding-left: 16px;
+}
+.masthead-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Search */
+.search-wrap {
+  display: flex;
+  align-items: center;
+  border-bottom: 1.5px solid var(--ink);
+  gap: 8px;
+  padding-bottom: 2px;
+  transition: border-color 0.2s;
+}
+.search-wrap:focus-within { border-color: var(--rust); }
+.search-wrap input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  width: 200px;
+}
+.search-wrap input::placeholder { color: var(--ink-faint); }
+.search-icon { font-size: 12px; color: var(--ink-faint); }
+
+.hdr-btn {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink);
+  transition: all 0.15s;
+}
+.hdr-btn:hover, .hdr-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+.hdr-btn.rust { border-color: var(--rust); color: var(--rust); }
+.hdr-btn.rust:hover { background: var(--rust); color: var(--paper); }
+
+/* Category nav */
+.cat-nav {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  padding: 0 32px;
+  gap: 0;
+  scrollbar-width: none;
+}
+.cat-nav::-webkit-scrollbar { display: none; }
+.cat-tab {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  cursor: pointer;
+  color: var(--ink-faint);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+  user-select: none;
+}
+.cat-tab:hover { color: var(--ink); }
+.cat-tab.active { color: var(--rust); border-bottom-color: var(--rust); }
+.cat-count {
+  font-size: 9px;
+  vertical-align: super;
+  margin-left: 3px;
+  opacity: 0.5;
+}
+
+/* ── Hero Strip ──────────────────────────────────────────── */
+.hero-strip {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  border-bottom: 1px solid var(--ink);
+  height: 340px;
+  overflow: hidden;
+}
+.hero-main {
+  border-right: 1px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 28px 32px;
+}
+.hero-main::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    160deg,
+    #2d1a0e 0%,
+    #1a0d06 30%,
+    #0d1a2d 70%,
+    #0a1428 100%
+  );
+}
+/* Halftone overlay */
+.hero-main::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(196,98,45,0.08) 1px, transparent 1px);
+  background-size: 12px 12px;
+  pointer-events: none;
+}
+.hero-main-content { position: relative; z-index: 1; }
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--rust);
+}
+.hero-title {
+  font-family: var(--head);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--paper);
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+.hero-title em { color: var(--rust-light); font-style: italic; }
+.hero-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(245,240,232,0.45);
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.hero-tags { display: flex; gap: 6px; }
+.hero-tag {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border: 1px solid rgba(196,98,45,0.4);
+  color: var(--rust-light);
+}
+
+/* Hero side cards */
+.hero-side { display: flex; flex-direction: column; }
+.hero-card {
+  flex: 1;
+  border-bottom: 1px solid var(--ink);
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.hero-card:last-child { border-bottom: none; }
+.hero-card:hover { background: var(--paper-2); }
+.hero-card-eyebrow {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.hero-card-title {
+  font-family: var(--head);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.hero-card-title em { font-style: italic; color: var(--ink-mid); }
+.hero-card-meta {
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  margin-top: 8px;
+}
+.hero-card .type-pill {
+  position: absolute;
+  top: 14px; right: 14px;
+}
+
+/* Hero right col */
+.hero-right { border-left: 1px solid var(--ink); }
+
+/* ── Section Header ──────────────────────────────────────── */
+.section-hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 20px 32px 12px;
+  border-bottom: 1px solid var(--paper-3);
+}
+.section-title {
+  font-family: var(--head);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.section-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.section-more {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--rust);
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: gap 0.15s;
+}
+.section-more:hover { gap: 8px; }
+
+/* ── Type Pill ───────────────────────────────────────────── */
+.type-pill {
+  display: inline-block;
+  font-family: var(--ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  background: var(--pill-bg, var(--rust-pale));
+  color: var(--pill-color, var(--rust));
+  border: 1px solid var(--pill-border, rgba(196,98,45,0.25));
+}
+
+/* ── Model Grid ──────────────────────────────────────────── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--paper-3);
+}
+.model-grid.wide { grid-template-columns: repeat(3, 1fr); }
+
+.model-card {
+  border-right: 1px solid var(--paper-3);
+  border-bottom: 1px solid var(--paper-3);
+  padding: 20px 22px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.model-card:nth-child(4n) { border-right: none; }
+.model-card:hover { background: var(--paper-2); }
+.model-card:hover .card-arrow { transform: translateX(4px); opacity: 1; }
+
+/* Accent top line */
+.model-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-accent, transparent);
+  transition: opacity 0.2s;
+}
+.model-card:hover::before { opacity: 1; }
+
+.card-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.card-source {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-left: auto;
+}
+.card-title {
+  font-family: var(--head);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+.card-title em { font-style: italic; color: var(--ink-mid); }
+.card-desc {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--paper-3);
+  padding-top: 10px;
+  margin-top: auto;
+}
+.card-stats {
+  display: flex;
+  gap: 12px;
+}
+.card-stat {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.card-stat-val { color: var(--ink-mid); font-weight: 500; }
+.card-arrow {
+  font-size: 14px;
+  color: var(--rust);
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+/* Featured card (spans 2 cols) */
+.model-card.featured {
+  grid-column: span 2;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.model-card.featured:hover { background: #2a2420; }
+.model-card.featured .card-title { color: var(--paper); font-size: 20px; }
+.model-card.featured .card-desc { color: rgba(245,240,232,0.5); margin-bottom: 20px; }
+.model-card.featured .card-footer { border-color: rgba(245,240,232,0.12); }
+.model-card.featured .card-stat { color: rgba(245,240,232,0.4); }
+.model-card.featured .card-stat-val { color: rgba(245,240,232,0.8); }
+.model-card.featured .card-source { color: rgba(245,240,232,0.3); }
+.model-card.featured .card-arrow { opacity: 0.4; color: var(--paper); }
+.model-card.featured:hover .card-arrow { opacity: 1; }
+
+/* ── Download Queue ──────────────────────────────────────── */
+.dl-strip {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-top: 2px solid var(--rust);
+}
+.dl-strip::-webkit-scrollbar { display: none; }
+.dl-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px 12px 0;
+  border-right: 1px solid rgba(245,240,232,0.08);
+  margin-right: 24px;
+  white-space: nowrap;
+  min-width: 260px;
+}
+.dl-item:last-child { border-right: none; margin-right: 0; }
+.dl-pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--rust);
+  animation: pulse-ring 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(196,98,45,0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(196,98,45,0); }
+  100% { box-shadow: 0 0 0 0 rgba(196,98,45,0); }
+}
+.dl-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(245,240,232,0.7);
+  flex: 1;
+}
+.dl-pct {
+  font-family: var(--head);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--paper);
+}
+.dl-bar {
+  width: 60px; height: 2px;
+  background: rgba(245,240,232,0.12);
+  border-radius: 1px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.dl-bar-fill {
+  height: 100%;
+  background: var(--rust);
+  transition: width 0.4s;
+}
+.dl-strip-label {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.3);
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+/* ── Sidebar Layout (content + filters) ─────────────────── */
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  min-height: calc(100vh - 148px);
+}
+.content-area { border-right: 1px solid var(--paper-3); }
+.filter-sidebar {
+  padding: 20px;
+  position: sticky;
+  top: 148px;
+  height: calc(100vh - 148px);
+  overflow-y: auto;
+}
+
+/* Filter sidebar */
+.filter-section { margin-bottom: 24px; }
+.filter-label {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--paper-3);
+}
+.filter-options { display: flex; flex-direction: column; gap: 4px; }
+.filter-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.12s;
+  user-select: none;
+}
+.filter-opt:hover { background: var(--paper-2); }
+.filter-opt.active { background: var(--rust-pale); }
+.filter-checkbox {
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--ink-faint);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.filter-opt.active .filter-checkbox {
+  background: var(--rust);
+  border-color: var(--rust);
+  color: white;
+  font-size: 9px;
+}
+.filter-opt-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mid);
+}
+.filter-opt.active .filter-opt-label { color: var(--rust); }
+.filter-opt-count {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-faint);
+}
+
+/* Sort buttons */
+.sort-group { display: flex; gap: 0; border: 1px solid var(--paper-3); }
+.sort-btn {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 6px 0;
+  text-align: center;
+  cursor: pointer;
+  border-right: 1px solid var(--paper-3);
+  color: var(--ink-faint);
+  transition: all 0.12s;
+  user-select: none;
+}
+.sort-btn:last-child { border-right: none; }
+.sort-btn:hover { background: var(--paper-2); color: var(--ink); }
+.sort-btn.active { background: var(--ink); color: var(--paper); }
+
+/* ── Size Range ──────────────────────────────────────────── */
+.range-track {
+  height: 2px;
+  background: var(--paper-3);
+  position: relative;
+  margin: 12px 4px;
+}
+.range-fill {
+  position: absolute;
+  height: 100%;
+  background: var(--rust);
+  left: 0%; right: 25%;
+}
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-faint);
+}
+
+/* ── Model Manager ──────────────────────────────────────── */
+.mgr-section {
+  padding: 0 32px 32px;
+  border-top: 2px solid var(--ink);
+}
+.mgr-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 24px 0 18px;
+  border-bottom: 1px solid var(--paper-3);
+  margin-bottom: 20px;
+}
+.mgr-title {
+  font-family: var(--head);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.mgr-title em { font-style: italic; color: var(--rust); }
+.mgr-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.mgr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+/* Folder breakdown */
+.mgr-folders {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.mgr-panel-label {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mgr-panel-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--paper-3);
+}
+.mgr-folder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--paper-3);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.mgr-folder-row:last-child { border-bottom: none; }
+.mgr-folder-name { color: var(--ink-mid); }
+.mgr-folder-size { color: var(--ink); font-weight: 500; }
+.mgr-folder-bar {
+  flex: 1;
+  max-width: 80px;
+  height: 3px;
+  background: var(--paper-3);
+  margin: 0 12px;
+  overflow: hidden;
+}
+.mgr-folder-bar-fill {
+  height: 100%;
+  background: var(--rust);
+}
+/* Symlink profiles */
+.mgr-profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--paper-3);
+  margin-bottom: 6px;
+  transition: background 0.12s;
+}
+.mgr-profile:hover { background: var(--paper-2); }
+.mgr-profile-name {
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.5px;
+}
+.mgr-profile-stat {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.mgr-profile-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.mgr-profile-left {
+  display: flex;
+  align-items: center;
+}
+/* Duplicate finder */
+.mgr-dup-box {
+  border: 1.5px solid var(--rust);
+  padding: 16px;
+  background: var(--rust-pale);
+}
+.mgr-dup-title {
+  font-family: var(--head);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.mgr-dup-stat {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--rust);
+  margin-bottom: 2px;
+}
+.mgr-dup-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.5px;
+}
+.mgr-dup-action {
+  font-family: var(--ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1.5px solid var(--rust);
+  background: transparent;
+  color: var(--rust);
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.15s;
+}
+.mgr-dup-action:hover {
+  background: var(--rust);
+  color: var(--paper);
+}
+@media (max-width: 1100px) {
+  .mgr-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 800px) {
+  .mgr-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Bottom Bar ──────────────────────────────────────────── */
+.bottom-bar {
+  background: var(--ink);
+  color: rgba(245,240,232,0.5);
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  border-top: 1px solid rgba(245,240,232,0.06);
+}
+.bb-item { display: flex; align-items: center; gap: 6px; }
+.bb-val { color: rgba(245,240,232,0.85); font-weight: 500; }
+.bb-sep { opacity: 0.2; }
+.bb-right { margin-left: auto; display: flex; gap: 16px; }
+
+/* ── Animations ─────────────────────────────────────────── */
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-strip { animation: reveal 0.4s ease; }
+.model-card {
+  animation: reveal 0.35s ease both;
+}
+.model-card:nth-child(1)  { animation-delay: 0.02s; }
+.model-card:nth-child(2)  { animation-delay: 0.05s; }
+.model-card:nth-child(3)  { animation-delay: 0.08s; }
+.model-card:nth-child(4)  { animation-delay: 0.11s; }
+.model-card:nth-child(5)  { animation-delay: 0.14s; }
+.model-card:nth-child(6)  { animation-delay: 0.17s; }
+.model-card:nth-child(7)  { animation-delay: 0.20s; }
+.model-card:nth-child(8)  { animation-delay: 0.23s; }
+.model-card:nth-child(9)  { animation-delay: 0.26s; }
+.model-card:nth-child(10) { animation-delay: 0.29s; }
+.model-card:nth-child(11) { animation-delay: 0.32s; }
+.model-card:nth-child(12) { animation-delay: 0.35s; }
+
+/* Hover tilt on main hero */
+.hero-main { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .model-grid { grid-template-columns: repeat(3, 1fr); }
+  .hero-strip { grid-template-columns: 3fr 2fr; }
+  .hero-right { display: none; }
+  .page-layout { grid-template-columns: 1fr; }
+  .filter-sidebar { display: none; }
+}
+@media (max-width: 800px) {
+  .model-grid { grid-template-columns: repeat(2, 1fr); }
+  .model-card.featured { grid-column: span 1; }
+  .hero-strip { height: 220px; grid-template-columns: 1fr; }
+  .hero-side { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Masthead ── -->
+<header class="masthead">
+  <div class="masthead-top">
+    <div class="masthead-wordmark">
+      <span class="wordmark-py">Py</span><span class="wordmark-matrix">Matrix</span>
+    </div>
+    <div class="masthead-edition">Model Atelier &nbsp;·&nbsp; März 2026</div>
+    <div class="masthead-right">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Modell, Autor, Stil suchen …" />
+      </div>
+      <button class="hdr-btn rust" onclick="showDlBar()">⬇ Downloads</button>
+      <button class="hdr-btn">↺ Sync</button>
+    </div>
+  </div>
+  <nav class="cat-nav">
+    <div class="cat-tab active" onclick="setTab(this)">Alle<span class="cat-count">1.4k</span></div>
+    <div class="cat-tab" onclick="setTab(this)">Checkpoints<span class="cat-count">42</span></div>
+    <div class="cat-tab" onclick="setTab(this)">LoRA<span class="cat-count">234</span></div>
+    <div class="cat-tab" onclick="setTab(this)">ControlNet<span class="cat-count">18</span></div>
+    <div class="cat-tab" onclick="setTab(this)">Embeddings<span class="cat-count">156</span></div>
+    <div class="cat-tab" onclick="setTab(this)">VAE<span class="cat-count">8</span></div>
+    <div class="cat-tab" onclick="setTab(this)">Upscaler<span class="cat-count">12</span></div>
+    <div class="cat-tab" onclick="setTab(this)">CivitAI</div>
+    <div class="cat-tab" onclick="setTab(this)">HuggingFace</div>
+  </nav>
+</header>
+
+<!-- ── Hero Strip ── -->
+<div class="hero-strip" id="hero">
+  <!-- Main hero -->
+  <div class="hero-main" onmousemove="tiltHero(event, this)" onmouseleave="resetTilt(this)">
+    <div class="hero-main-content">
+      <div class="hero-eyebrow">Neuvorstellung · Checkpoint</div>
+      <h1 class="hero-title">DreamShaper<br /><em>XL Turbo</em></h1>
+      <div class="hero-meta">
+        <span>Lykon · CivitAI</span>
+        <span>3.97 GB · SDXL</span>
+        <span>↓ 2.1M Downloads</span>
+      </div>
+      <div class="hero-tags">
+        <span class="hero-tag">Photorealistisch</span>
+        <span class="hero-tag">SDXL</span>
+        <span class="hero-tag">Turbo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side cards -->
+  <div class="hero-side">
+    <div class="hero-card">
+      <div>
+        <div class="hero-card-eyebrow">LoRA · Beliebt</div>
+        <div class="hero-card-title">Detail Tweaker<br /><em>v2</em></div>
+        <div class="hero-card-meta">tkphoto · 144 MB · ↓ 890k</div>
+      </div>
+      <div class="type-pill" style="--pill-bg:var(--gold-pale);--pill-color:var(--gold);--pill-border:rgba(184,148,58,0.25)">LoRA</div>
+    </div>
+    <div class="hero-card" style="border-top: 1px solid var(--ink)">
+      <div>
+        <div class="hero-card-eyebrow">ControlNet · Neu</div>
+        <div class="hero-card-title">Canny Edge<br /><em>SDXL v2</em></div>
+        <div class="hero-card-meta">lllyasviel · 1.45 GB · ↓ 445k</div>
+      </div>
+      <div class="type-pill" style="--pill-bg:var(--teal-pale);--pill-color:var(--teal);--pill-border:rgba(45,122,108,0.25)">ControlNet</div>
+    </div>
+  </div>
+
+  <!-- Right col -->
+  <div class="hero-side hero-right">
+    <div class="hero-card">
+      <div>
+        <div class="hero-card-eyebrow">Embedding · SD 1.5</div>
+        <div class="hero-card-title">EasyNegative<br /><em>v2</em></div>
+        <div class="hero-card-meta">gsdf · 24 KB · ↓ 3.2M</div>
+      </div>
+      <div class="type-pill">Embedding</div>
+    </div>
+    <div class="hero-card" style="border-top: 1px solid var(--ink)">
+      <div>
+        <div class="hero-card-eyebrow">VAE · SDXL</div>
+        <div class="hero-card-title">sdxl-vae-fp16-<em>fix</em></div>
+        <div class="hero-card-meta">madebyollin · HF · 334 MB</div>
+      </div>
+      <div class="type-pill" style="--pill-bg:var(--violet-pale);--pill-color:var(--violet);--pill-border:rgba(90,61,138,0.2)">VAE</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Download Strip (hidden by default) ── -->
+<div class="dl-strip" id="dl-strip" style="display:none">
+  <div class="dl-strip-label">Downloads</div>
+  <div class="dl-item">
+    <div class="dl-pulse"></div>
+    <div class="dl-name">dreamshaper_8.safetensors</div>
+    <div class="dl-pct">67%</div>
+    <div class="dl-bar"><div class="dl-bar-fill" style="width:67%"></div></div>
+  </div>
+  <div class="dl-item" style="opacity:0.5">
+    <div class="dl-pulse" style="background:var(--ink-faint);animation:none"></div>
+    <div class="dl-name">detail_tweaker_lora.safetensors</div>
+    <div class="dl-pct">Wartend</div>
+    <div class="dl-bar"><div class="dl-bar-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- ── Main Layout ── -->
+<div class="page-layout">
+
+  <!-- Content -->
+  <div class="content-area">
+
+    <!-- Checkpoints section -->
+    <div class="section-hdr">
+      <span class="section-title">Checkpoints</span>
+      <span class="section-sub">42 installiert · 6 verfügbar</span>
+      <a class="section-more" href="#">Alle ansehen →</a>
+    </div>
+    <div class="model-grid">
+
+      <!-- Featured card -->
+      <div class="model-card featured" style="--card-accent:var(--rust)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:rgba(196,98,45,0.18);--pill-color:#e87d49;--pill-border:rgba(196,98,45,0.3)">Checkpoint</span>
+          <span class="type-pill" style="--pill-bg:rgba(184,148,58,0.15);--pill-color:#c8a840;--pill-border:rgba(184,148,58,0.25);margin-left:4px">SDXL</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">DreamShaper <em>XL Turbo</em></div>
+        <div class="card-desc">Hochrealistischer All-Rounder mit exzellenter Gesichtsdarstellung und Turbo-Architektur für schnelle Inferenz.</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <span style="font-size:10px;padding:2px 8px;border:1px solid rgba(196,98,45,0.3);color:rgba(196,98,45,0.8);font-family:var(--ui);font-weight:700;letter-spacing:0.5px">Portraits</span>
+          <span style="font-size:10px;padding:2px 8px;border:1px solid rgba(196,98,45,0.3);color:rgba(196,98,45,0.8);font-family:var(--ui);font-weight:700;letter-spacing:0.5px">Photorealism</span>
+          <span style="font-size:10px;padding:2px 8px;border:1px solid rgba(196,98,45,0.3);color:rgba(196,98,45,0.8);font-family:var(--ui);font-weight:700;letter-spacing:0.5px">Fast</span>
+        </div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat"><span>↓</span><span class="card-stat-val" style="color:rgba(245,240,232,0.8)">2.1M</span></div>
+            <div class="card-stat"><span>♡</span><span class="card-stat-val" style="color:rgba(245,240,232,0.8)">48k</span></div>
+            <div class="card-stat"><span>◈</span><span class="card-stat-val" style="color:rgba(245,240,232,0.8)">3.97 GB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+      <!-- Regular checkpoint cards -->
+      <div class="model-card" style="--card-accent:var(--teal)">
+        <div class="card-type-row">
+          <span class="type-pill">Checkpoint</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">RealisticVision <em>v6</em></div>
+        <div class="card-desc">Fotorealistisch, ideal für Portraits und Szenen mit natürlichem Licht.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">1.8M</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">2.13 GB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="model-card" style="--card-accent:var(--violet)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:var(--violet-pale);--pill-color:var(--violet);--pill-border:rgba(90,61,138,0.2)">Checkpoint</span>
+          <span class="type-pill" style="--pill-bg:var(--gold-pale);--pill-color:var(--gold);--pill-border:rgba(184,148,58,0.2);margin-left:4px">Flux</span>
+          <span class="card-source">HF</span>
+        </div>
+        <div class="card-title">FLUX.1 <em>dev</em></div>
+        <div class="card-desc">Black Forest Labs Basismodell. State-of-the-art für hochauflösende Generierung.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">890k</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">23.8 GB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- LoRA section -->
+    <div class="section-hdr" style="margin-top:4px">
+      <span class="section-title">LoRA &amp; Adapter</span>
+      <span class="section-sub">234 installiert · 1.2k auf CivitAI</span>
+      <a class="section-more" href="#">Alle ansehen →</a>
+    </div>
+    <div class="model-grid">
+
+      <div class="model-card" style="--card-accent:var(--gold)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:var(--gold-pale);--pill-color:var(--gold);--pill-border:rgba(184,148,58,0.25)">LoRA</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">Detail Tweaker <em>v2</em></div>
+        <div class="card-desc">Steigert Detailreichtum in Texturen und Oberflächen ohne den Stil zu verändern.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">890k</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">144 MB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="model-card featured" style="--card-accent:var(--gold);grid-column:span 2">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:rgba(184,148,58,0.18);--pill-color:#c8a840;--pill-border:rgba(184,148,58,0.3)">LoRA</span>
+          <span class="type-pill" style="--pill-bg:rgba(0,0,0,0.3);--pill-color:rgba(245,240,232,0.7);--pill-border:rgba(245,240,232,0.12);margin-left:4px">SD 1.5 + XL</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">Add More Details <em>— Detail Enhancer</em></div>
+        <div class="card-desc">Universeller Detail-Enhancer für SD 1.5 und SDXL. Negative Gewichtung für glattere Texturen, positive für maximale Detaildichte.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat"><span>↓</span><span class="card-stat-val" style="color:rgba(245,240,232,0.8)">670k</span></div>
+            <div class="card-stat"><span>♡</span><span class="card-stat-val" style="color:rgba(245,240,232,0.8)">12k</span></div>
+            <div class="card-stat"><span>◈</span><span class="card-stat-val" style="color:rgba(245,240,232,0.8)">36 MB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="model-card" style="--card-accent:var(--rust)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:var(--gold-pale);--pill-color:var(--gold);--pill-border:rgba(184,148,58,0.25)">LoRA</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">Film Grain <em>v2</em></div>
+        <div class="card-desc">Analoges Filmkorn-Overlay für fotografischen Charakter.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">445k</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">28 MB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="model-card" style="--card-accent:var(--teal)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:var(--gold-pale);--pill-color:var(--gold);--pill-border:rgba(184,148,58,0.25)">LoRA</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">Age Slider <em>SDXL</em></div>
+        <div class="card-desc">Kontrolliert das Alter von Gesichtern auf einer kontinuierlichen Skala.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">388k</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">92 MB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="model-card" style="--card-accent:var(--violet)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:var(--gold-pale);--pill-color:var(--gold);--pill-border:rgba(184,148,58,0.25)">LoRA</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">Style Aligned <em>Flux</em></div>
+        <div class="card-desc">Stilkonsistenz-Adapter für Flux.1 — hält Stil über mehrere Generierungen.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">210k</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">18 MB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CivitAI Discovery -->
+    <div class="section-hdr" style="margin-top:4px">
+      <span class="section-title">CivitAI Entdeckungen</span>
+      <span class="section-sub">Diese Woche neu</span>
+      <a class="section-more" href="#">CivitAI öffnen →</a>
+    </div>
+    <div class="model-grid wide">
+      <div class="model-card" style="--card-accent:var(--rust)">
+        <div class="card-type-row">
+          <span class="type-pill">Embedding</span>
+          <span class="card-source">CivitAI</span>
+        </div>
+        <div class="card-title">EasyNegative <em>v2</em></div>
+        <div class="card-desc">Das meistgenutzte Negative-Embedding — minimiert generische Artefakte in einem einzigen Token.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">3.2M</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">24 KB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+      <div class="model-card" style="--card-accent:var(--teal)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:var(--teal-pale);--pill-color:var(--teal);--pill-border:rgba(45,122,108,0.25)">ControlNet</span>
+          <span class="card-source">HF</span>
+        </div>
+        <div class="card-title">IP-Adapter <em>Plus SDXL</em></div>
+        <div class="card-desc">Bild-Prompt-Adapter für konsistente Stil- und Gesichtsübertragung in SDXL-Modellen.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">1.1M</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">2.45 GB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+      <div class="model-card" style="--card-accent:var(--violet)">
+        <div class="card-type-row">
+          <span class="type-pill" style="--pill-bg:var(--violet-pale);--pill-color:var(--violet);--pill-border:rgba(90,61,138,0.2)">Upscaler</span>
+          <span class="card-source">HF</span>
+        </div>
+        <div class="card-title">4x-UltraSharp</div>
+        <div class="card-desc">Bester allgemeiner 4x Upscaler — scharf, clean, keine Artefakte. Standard in der Community.</div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">↓ <span class="card-stat-val">2.8M</span></div>
+            <div class="card-stat">◈ <span class="card-stat-val">67 MB</span></div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+
+  <!-- Filter Sidebar -->
+  <aside class="filter-sidebar">
+
+    <!-- Sort -->
+    <div class="filter-section">
+      <div class="filter-label">Sortieren</div>
+      <div class="sort-group">
+        <div class="sort-btn active" onclick="setSort(this)">Neu</div>
+        <div class="sort-btn" onclick="setSort(this)">Pop</div>
+        <div class="sort-btn" onclick="setSort(this)">Größe</div>
+      </div>
+    </div>
+
+    <!-- Basis-Modell -->
+    <div class="filter-section">
+      <div class="filter-label">Basismodell</div>
+      <div class="filter-options">
+        <div class="filter-opt active" onclick="toggleFilter(this)">
+          <div class="filter-checkbox">✓</div>
+          <span class="filter-opt-label">SD 1.5</span>
+          <span class="filter-opt-count">612</span>
+        </div>
+        <div class="filter-opt active" onclick="toggleFilter(this)">
+          <div class="filter-checkbox">✓</div>
+          <span class="filter-opt-label">SDXL</span>
+          <span class="filter-opt-count">489</span>
+        </div>
+        <div class="filter-opt" onclick="toggleFilter(this)">
+          <div class="filter-checkbox"></div>
+          <span class="filter-opt-label">Flux</span>
+          <span class="filter-opt-count">167</span>
+        </div>
+        <div class="filter-opt" onclick="toggleFilter(this)">
+          <div class="filter-checkbox"></div>
+          <span class="filter-opt-label">SD 2.x</span>
+          <span class="filter-opt-count">88</span>
+        </div>
+        <div class="filter-opt" onclick="toggleFilter(this)">
+          <div class="filter-checkbox"></div>
+          <span class="filter-opt-label">Pony</span>
+          <span class="filter-opt-count">44</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quelle -->
+    <div class="filter-section">
+      <div class="filter-label">Quelle</div>
+      <div class="filter-options">
+        <div class="filter-opt active" onclick="toggleFilter(this)">
+          <div class="filter-checkbox">✓</div>
+          <span class="filter-opt-label">CivitAI</span>
+          <span class="filter-opt-count">923</span>
+        </div>
+        <div class="filter-opt active" onclick="toggleFilter(this)">
+          <div class="filter-checkbox">✓</div>
+          <span class="filter-opt-label">HuggingFace</span>
+          <span class="filter-opt-count">477</span>
+        </div>
+        <div class="filter-opt" onclick="toggleFilter(this)">
+          <div class="filter-checkbox"></div>
+          <span class="filter-opt-label">Lokal</span>
+          <span class="filter-opt-count">12</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dateigröße -->
+    <div class="filter-section">
+      <div class="filter-label">Dateigröße</div>
+      <div class="range-track">
+        <div class="range-fill"></div>
+      </div>
+      <div class="range-labels">
+        <span>0 MB</span>
+        <span>30 GB</span>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="filter-section">
+      <div class="filter-label">Status</div>
+      <div class="filter-options">
+        <div class="filter-opt active" onclick="toggleFilter(this)">
+          <div class="filter-checkbox">✓</div>
+          <span class="filter-opt-label">Installiert</span>
+          <span class="filter-opt-count">1.4k</span>
+        </div>
+        <div class="filter-opt" onclick="toggleFilter(this)">
+          <div class="filter-checkbox"></div>
+          <span class="filter-opt-label">Verlinkt</span>
+          <span class="filter-opt-count">892</span>
+        </div>
+        <div class="filter-opt" onclick="toggleFilter(this)">
+          <div class="filter-checkbox"></div>
+          <span class="filter-opt-label">Duplikat</span>
+          <span class="filter-opt-count">7</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div><!-- /page-layout -->
+
+<!-- ── Model Manager ── -->
+<section class="mgr-section">
+  <div class="mgr-header">
+    <span class="mgr-title">Model <em>Manager</em></span>
+    <span class="mgr-sub">Speicher &middot; Symlinks &middot; Duplikate</span>
+  </div>
+  <div class="mgr-grid">
+
+    <!-- Folder Sizes -->
+    <div class="mgr-folders">
+      <div class="mgr-panel-label">Ordnertypen</div>
+      <div class="mgr-folder-row">
+        <span class="mgr-folder-name">Checkpoints</span>
+        <div class="mgr-folder-bar"><div class="mgr-folder-bar-fill" style="width:100%"></div></div>
+        <span class="mgr-folder-size">118.4 GB</span>
+      </div>
+      <div class="mgr-folder-row">
+        <span class="mgr-folder-name">Lora</span>
+        <div class="mgr-folder-bar"><div class="mgr-folder-bar-fill" style="width:52%"></div></div>
+        <span class="mgr-folder-size">62.1 GB</span>
+      </div>
+      <div class="mgr-folder-row">
+        <span class="mgr-folder-name">ControlNet</span>
+        <div class="mgr-folder-bar"><div class="mgr-folder-bar-fill" style="width:33%"></div></div>
+        <span class="mgr-folder-size">38.6 GB</span>
+      </div>
+      <div class="mgr-folder-row">
+        <span class="mgr-folder-name">VAE</span>
+        <div class="mgr-folder-bar"><div class="mgr-folder-bar-fill" style="width:16%"></div></div>
+        <span class="mgr-folder-size">19.2 GB</span>
+      </div>
+      <div class="mgr-folder-row">
+        <span class="mgr-folder-name">Embeddings</span>
+        <div class="mgr-folder-bar"><div class="mgr-folder-bar-fill" style="width:6%"></div></div>
+        <span class="mgr-folder-size">8.4 GB</span>
+      </div>
+      <div class="mgr-folder-row">
+        <span class="mgr-folder-name">Upscaler</span>
+        <div class="mgr-folder-bar"><div class="mgr-folder-bar-fill" style="width:3%"></div></div>
+        <span class="mgr-folder-size">4.1 GB</span>
+      </div>
+    </div>
+
+    <!-- Symlink Profiles -->
+    <div>
+      <div class="mgr-panel-label">Symlink Profile</div>
+      <div class="mgr-profile">
+        <div class="mgr-profile-left">
+          <div class="mgr-profile-dot" style="background:var(--rust)"></div>
+          <span class="mgr-profile-name">A1111</span>
+        </div>
+        <span class="mgr-profile-stat">342 Links &middot; aktiv</span>
+      </div>
+      <div class="mgr-profile">
+        <div class="mgr-profile-left">
+          <div class="mgr-profile-dot" style="background:var(--teal)"></div>
+          <span class="mgr-profile-name">ComfyUI</span>
+        </div>
+        <span class="mgr-profile-stat">287 Links &middot; aktiv</span>
+      </div>
+      <div class="mgr-profile">
+        <div class="mgr-profile-left">
+          <div class="mgr-profile-dot" style="background:var(--gold)"></div>
+          <span class="mgr-profile-name">Forge</span>
+        </div>
+        <span class="mgr-profile-stat">263 Links &middot; aktiv</span>
+      </div>
+    </div>
+
+    <!-- Duplicate Finder -->
+    <div>
+      <div class="mgr-panel-label">Duplikat-Finder</div>
+      <div class="mgr-dup-box">
+        <div class="mgr-dup-title">Gefundene Duplikate</div>
+        <div class="mgr-dup-stat">7 Gruppen</div>
+        <div class="mgr-dup-label">47.3 GB verschwendet</div>
+        <button class="mgr-dup-action">Bereinigen &rarr;</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Bottom Bar ── -->
+<footer class="bottom-bar">
+  <div class="bb-item">Modelle: <span class="bb-val">1.412</span></div>
+  <span class="bb-sep">·</span>
+  <div class="bb-item">Disk: <span class="bb-val">387 GB</span></div>
+  <span class="bb-sep">·</span>
+  <div class="bb-item">Master-Root: <span class="bb-val">D:/Programme/stability_matrix/Models</span></div>
+  <div class="bb-right">
+    <span>PyMatrix v2.0.0</span>
+    <span class="bb-sep">·</span>
+    <span id="footer-time">--:--:--</span>
+  </div>
+</footer>
+
+<script>
+// Clock
+setInterval(() => {
+  document.getElementById('footer-time').textContent =
+    new Date().toLocaleTimeString('de-DE');
+}, 1000);
+
+// Category tabs
+function setTab(el) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Sort
+function setSort(el) {
+  el.closest('.sort-group').querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Filter checkboxes
+function toggleFilter(el) {
+  el.classList.toggle('active');
+}
+
+// Download strip toggle
+function showDlBar() {
+  const bar = document.getElementById('dl-strip');
+  bar.style.display = bar.style.display === 'none' ? 'flex' : 'none';
+}
+
+// Hero tilt
+function tiltHero(e, el) {
+  const r = el.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width - 0.5;
+  const y = (e.clientY - r.top) / r.height - 0.5;
+  el.style.transform = `perspective(800px) rotateY(${x * 4}deg) rotateX(${-y * 3}deg) scale(1.005)`;
+}
+function resetTilt(el) {
+  el.style.transform = '';
+}
+
+// Animate download bar
+let pct = 67;
+setInterval(() => {
+  pct = Math.min(100, pct + Math.random() * 2);
+  const fill = document.querySelector('.dl-bar-fill');
+  const pctEl = document.querySelector('.dl-pct');
+  if (fill) fill.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+}, 800);
+</script>
+<!-- Dashboard Switcher -->
+<div id="ds-switcher" style="position:fixed;bottom:20px;right:20px;z-index:9999;font-family:system-ui,sans-serif">
+  <div id="ds-menu" style="display:none;position:absolute;bottom:48px;right:0;background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:6px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+    <a href="index.html" class="ds-link" data-page="index">🌃 Cyberpunk</a>
+    <a href="gradio.html" class="ds-link" data-page="gradio">☀ Gradio Light</a>
+    <a href="control.html" class="ds-link" data-page="control">🖥 Mission Control</a>
+    <a href="manager.html" class="ds-link" data-page="manager">🗂 Model Manager</a>
+    <a href="models.html" class="ds-link" data-page="models">📰 Editorial</a>
+  </div>
+  <button onclick="document.getElementById('ds-menu').style.display=document.getElementById('ds-menu').style.display==='none'?'':'none'" style="width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#1a1a2e;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform=''">🔀</button>
+</div>
+<style>
+.ds-link{display:block;padding:8px 12px;color:#ccc;text-decoration:none;border-radius:5px;font-size:13px;transition:background 0.15s}
+.ds-link:hover{background:#2a2a4e;color:#fff}
+.ds-link.ds-active{background:#333;color:#00ff88;font-weight:600}
+</style>
+<script>(function(){var p=location.pathname.split('/').pop().replace('.html','');document.querySelectorAll('.ds-link').forEach(function(a){if(a.dataset.page===p)a.classList.add('ds-active')});})()</script>
+</body>
+</html>

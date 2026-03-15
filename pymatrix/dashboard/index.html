@@ -1,0 +1,2877 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyMatrix — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+/* ── Root Tokens ──────────────────────────────────────────── */
+:root {
+  --bg0:        #060910;
+  --bg1:        #0b0f1a;
+  --bg2:        #111827;
+  --bg3:        #1a2035;
+  --border:     #1e293b;
+  --border-hi:  #2d3f5c;
+  --text:       #c9d6e8;
+  --text-dim:   #4a5a70;
+  --text-mute:  #2a3a50;
+  --cyan:       #00d4ff;
+  --cyan-dim:   #004466;
+  --amber:      #ffaa00;
+  --amber-dim:  #4a3000;
+  --green:      #00ff88;
+  --green-dim:  #003322;
+  --red:        #ff3b5c;
+  --red-dim:    #3a0010;
+  --purple:     #a78bfa;
+  --purple-dim: #2a1a4a;
+  --sidebar-w:  220px;
+  --radius:     8px;
+  --mono:       'Share Tech Mono', monospace;
+  --head:       'Rajdhani', sans-serif;
+  --code:       'JetBrains Mono', monospace;
+}
+
+/* ── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Noise texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+/* Scanlines on sidebar */
+.sidebar::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,212,255,0.015) 2px,
+    rgba(0,212,255,0.015) 4px
+  );
+  pointer-events: none;
+}
+
+.sidebar-logo {
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.sidebar-logo-main {
+  font-family: var(--head);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.logo-py { color: var(--cyan); }
+.logo-matrix { color: var(--text); }
+.sidebar-logo-sub {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.logo-version {
+  position: absolute;
+  top: 22px; right: 16px;
+  font-size: 10px;
+  color: var(--cyan-dim);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+}
+
+/* Nav */
+.nav { padding: 12px 8px; flex: 1; }
+.nav-section {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 8px 10px 4px;
+  margin-top: 8px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  user-select: none;
+  position: relative;
+  font-size: 13px;
+}
+.nav-item:hover { background: var(--bg2); color: var(--text); }
+.nav-item.active {
+  background: var(--bg3);
+  color: var(--cyan);
+  border: 1px solid var(--border-hi);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -8px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 60%;
+  background: var(--cyan);
+  border-radius: 0 2px 2px 0;
+}
+.nav-icon {
+  width: 16px;
+  text-align: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.nav-badge {
+  margin-left: auto;
+  background: var(--green);
+  color: var(--bg0);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-family: var(--head);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Running packages in sidebar */
+.running-section { padding: 8px; border-top: 1px solid var(--border); }
+.running-title {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 6px 10px 6px;
+}
+.running-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg2);
+  border: 1px solid var(--green-dim);
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+.running-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+  animation: dot-glow 1.5s ease-in-out infinite;
+}
+@keyframes dot-glow {
+  0%, 100% { box-shadow: 0 0 4px var(--green); }
+  50% { box-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,255,136,0.3); }
+}
+.running-name {
+  font-size: 11px;
+  color: var(--green);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.running-stop {
+  width: 18px; height: 18px;
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  color: var(--red);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.running-stop:hover { background: var(--red); color: var(--bg0); }
+
+/* Status bar at bottom of sidebar */
+.sidebar-status {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.status-dot-ok { color: var(--green); }
+
+/* ── Main Content ────────────────────────────────────────── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Topbar */
+.topbar {
+  height: 48px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-family: var(--head);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+.topbar-sub {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.topbar-time {
+  font-family: var(--code);
+  font-size: 11px;
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+.topbar-actions { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+.btn-primary {
+  background: var(--cyan);
+  color: var(--bg0);
+  font-weight: 600;
+}
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,212,255,0.3); }
+.btn-ghost {
+  background: var(--bg2);
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+.btn-ghost:hover { background: var(--bg3); color: var(--text); border-color: var(--border-hi); }
+.btn-danger {
+  background: var(--red-dim);
+  color: var(--red);
+  border-color: rgba(255,59,92,0.3);
+}
+.btn-danger:hover { background: var(--red); color: var(--bg0); }
+
+/* ── Page Content ───────────────────────────────────────── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  position: relative;
+}
+
+/* Custom scrollbar */
+.content::-webkit-scrollbar { width: 6px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+
+/* ── Stat Cards ─────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hi);
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent, var(--cyan));
+  opacity: 0.6;
+}
+.stat-value {
+  font-family: var(--head);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent, var(--cyan));
+  line-height: 1;
+  margin-bottom: 4px;
+  text-shadow: 0 0 20px var(--accent, rgba(0,212,255,0.4));
+}
+.stat-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.stat-icon {
+  position: absolute;
+  top: 12px; right: 14px;
+  font-size: 20px;
+  opacity: 0.12;
+}
+
+/* ── Grid Layout ────────────────────────────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.grid-3-2 {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ── Panel ──────────────────────────────────────────────── */
+.panel {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(to bottom, var(--bg2), var(--bg1));
+}
+.panel-title {
+  font-family: var(--head);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  flex: 1;
+}
+.panel-accent { color: var(--cyan); }
+.panel-body { padding: 12px; }
+
+/* ── Package Cards ──────────────────────────────────────── */
+.pkg-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.pkg-card:hover { border-color: var(--border-hi); background: var(--bg3); }
+.pkg-card.running {
+  border-color: rgba(0,255,136,0.25);
+  background: linear-gradient(to right, rgba(0,255,136,0.04), transparent);
+}
+/* Electric border animation for running packages */
+.pkg-card.running::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    transparent 25%, rgba(0,255,136,0.15) 50%, transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: sweep 2s linear infinite;
+  pointer-events: none;
+}
+@keyframes sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.pkg-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pkg-status-dot.on {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: dot-glow 1.5s ease-in-out infinite;
+}
+.pkg-status-dot.off { background: var(--border-hi); }
+.pkg-info { flex: 1; min-width: 0; }
+.pkg-name {
+  font-family: var(--head);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pkg-color, var(--text));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pkg-meta {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: var(--code);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pkg-url {
+  font-size: 10px;
+  color: var(--cyan);
+  font-family: var(--code);
+  margin-top: 1px;
+}
+.pkg-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.icon-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all 0.15s;
+}
+.icon-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--bg1); }
+.icon-btn.green { border-color: var(--green); color: var(--green); }
+.icon-btn.green:hover { background: var(--green); color: var(--bg0); }
+.icon-btn.red { border-color: var(--red); color: var(--red); }
+.icon-btn.red:hover { background: var(--red); color: var(--bg0); }
+.icon-btn.blue { border-color: var(--cyan); color: var(--cyan); }
+.icon-btn.blue:hover { background: var(--cyan); color: var(--bg0); }
+
+.tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--head);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.tag-running { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+.tag-stopped { background: var(--bg3); color: var(--text-dim); border: 1px solid var(--border); }
+.tag-installed { background: rgba(0,212,255,0.08); color: var(--cyan); border: 1px solid rgba(0,212,255,0.2); }
+
+/* ── Catalog Grid ───────────────────────────────────────── */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+}
+.cat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.cat-card:hover { border-color: var(--border-hi); transform: translateY(-1px); }
+.cat-stripe {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--c, var(--cyan));
+}
+.cat-card-name {
+  font-family: var(--head);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c, var(--cyan));
+  padding-left: 10px;
+  margin-bottom: 3px;
+}
+.cat-card-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  padding-left: 10px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cat-card-tags {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  padding-left: 10px;
+  flex-wrap: wrap;
+}
+.cat-tag {
+  background: var(--bg3);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 9px;
+  padding: 1px 5px;
+  letter-spacing: 0.5px;
+}
+.cat-card-action {
+  position: absolute;
+  top: 8px; right: 10px;
+}
+
+/* ── Log / Terminal ─────────────────────────────────────── */
+.terminal {
+  background: #020508;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--code);
+  font-size: 11px;
+  line-height: 1.7;
+  overflow: hidden;
+}
+.terminal-topbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+}
+.terminal-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.t-red { background: #ff5f57; }
+.t-yellow { background: #ffbd2e; }
+.t-green { background: #28c841; }
+.terminal-title {
+  flex: 1;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+  letter-spacing: 1px;
+}
+.terminal-body {
+  padding: 12px 14px;
+  height: 200px;
+  overflow-y: auto;
+}
+.terminal-body::-webkit-scrollbar { width: 3px; }
+.terminal-body::-webkit-scrollbar-thumb { background: var(--bg3); }
+.t-line { display: block; }
+.t-ts { color: #2a4a3a; }
+.t-bracket { color: #1a3050; }
+.t-pkg { color: #4a7a9b; }
+.t-info { color: var(--text-dim); }
+.t-ok { color: var(--green); }
+.t-err { color: var(--red); }
+.t-url { color: var(--cyan); }
+.t-warn { color: var(--amber); }
+.t-cursor {
+  display: inline-block;
+  width: 8px; height: 12px;
+  background: var(--cyan);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ── Extensions / Lora ─────────────────────────────────── */
+.lora-featured {
+  background: linear-gradient(135deg, var(--bg2) 0%, rgba(255,170,0,0.06) 100%);
+  border: 1px solid rgba(255,170,0,0.25);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.lora-featured::before {
+  content: '⭐';
+  position: absolute;
+  right: 16px; top: 12px;
+  font-size: 32px;
+  opacity: 0.15;
+}
+.lora-featured-badge {
+  display: inline-block;
+  background: var(--amber);
+  color: var(--bg0);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--head);
+  margin-bottom: 8px;
+}
+.lora-featured-name {
+  font-family: var(--head);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+.lora-featured-by {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.lora-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.lora-feat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,170,0,0.08);
+  border: 1px solid rgba(255,170,0,0.15);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.lora-feat-dot { color: var(--amber); font-size: 8px; }
+.lora-btn-row { display: flex; gap: 8px; }
+
+/* ── Search Bar ─────────────────────────────────────────── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 12px;
+  height: 32px;
+  transition: border-color 0.15s;
+}
+.search-bar:focus-within { border-color: var(--cyan); }
+.search-icon { color: var(--text-dim); font-size: 11px; }
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 180px;
+}
+.search-input::placeholder { color: var(--text-mute); }
+
+/* ── Progress Bar ───────────────────────────────────────── */
+.progress-bar {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--cyan), var(--purple));
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* ── Disk Usage Bars ────────────────────────────────────── */
+.disk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.disk-row:last-child { border-bottom: none; }
+.disk-icon { font-size: 13px; width: 20px; text-align: center; flex-shrink: 0; }
+.disk-info { flex: 1; min-width: 0; }
+.disk-name {
+  font-family: var(--head);
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.disk-size { font-size: 10px; color: var(--text-dim); font-family: var(--code); }
+.disk-bar-wrap {
+  width: 100px;
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.disk-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--bar-color, var(--cyan));
+}
+
+/* ── Filter Tabs ────────────────────────────────────────── */
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg0);
+  border-radius: 6px;
+  margin: 10px 12px;
+}
+.filter-tab {
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  user-select: none;
+  font-family: var(--head);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.filter-tab:hover { color: var(--text); }
+.filter-tab.active { background: var(--bg2); color: var(--cyan); }
+
+/* ── Downloader ─────────────────────────────────────────── */
+.dl-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+}
+.dl-url-input {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 12px;
+  height: 36px;
+  color: var(--text);
+  font-family: var(--code);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.dl-url-input:focus { border-color: var(--cyan); }
+.dl-url-input::placeholder { color: var(--text-mute); }
+.dl-queue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.dl-thumb {
+  width: 36px; height: 36px;
+  border-radius: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.dl-info { flex: 1; min-width: 0; }
+.dl-name {
+  font-family: var(--head);
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dl-meta { font-size: 10px; color: var(--text-dim); font-family: var(--code); }
+
+/* ── PAGES ──────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Animations ─────────────────────────────────────────── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page.active { animation: fadeSlideIn 0.2s ease; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  .grid-3-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .sidebar { width: 56px; }
+  .sidebar-logo, .running-section, .nav-section, .nav-item span { display: none; }
+  .nav-item { justify-content: center; }
+  .sidebar-status { display: none; }
+}
+
+/* ── Model Manager Tabs ── */
+.mm-tab, .sc-tab {
+  flex: 1;
+  padding: 10px 14px;
+  text-align: center;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-dim);
+  cursor: pointer;
+  background: var(--bg2);
+  transition: all 0.15s;
+  border-right: 1px solid var(--border);
+}
+.mm-tab:last-child, .sc-tab:last-child { border-right: none; }
+.mm-tab:hover, .sc-tab:hover { background: var(--bg3); color: var(--text); }
+.mm-tab.active { background: rgba(0,212,255,0.08); color: var(--cyan); border-bottom: 2px solid var(--cyan); }
+.sc-tab.active { background: rgba(0,255,136,0.08); color: var(--green); border-bottom: 2px solid var(--green); }
+
+/* Cyber toggle */
+.cyber-toggle {
+  width: 34px; height: 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cyber-toggle.on { background: rgba(0,212,255,0.15); border-color: var(--cyan); }
+.cyber-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 10px; height: 10px;
+  background: var(--text-dim);
+  border-radius: 1px;
+  transition: all 0.2s;
+}
+.cyber-toggle.on::after { left: 20px; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+
+/* Matrix cell */
+.mx-cell {
+  width: 68px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; cursor: default; transition: background 0.12s;
+}
+.mx-cell:hover { background: var(--bg3); }
+.mx-cell.linked { background: rgba(0,255,136,0.06); color: var(--green); font-size: 13px; }
+.mx-cell.none { color: var(--text-mute); }
+.mx-cell.merged { background: rgba(0,212,255,0.05); color: var(--cyan); font-size: 9px; text-align: center; line-height: 1.2; padding: 2px; }
+
+/* Sym-card */
+.sym-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.sym-card.ok { border-color: var(--green-dim); }
+.sym-card:hover { border-color: var(--border-hi); }
+.sym-card-head {
+  padding: 10px 12px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg1);
+}
+.sym-card-body { padding: 8px 12px; }
+
+.sym-rule {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 0; border-bottom: 1px solid rgba(30,41,59,0.5);
+  font-size: 10px; font-family: var(--code);
+}
+.sym-rule:last-child { border: none; }
+
+/* Folder row hover */
+.mm-frow:hover td { background: var(--bg3); }
+
+/* Dupe group */
+.dupe-group {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.dupe-group-head {
+  padding: 10px 12px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.dupe-file {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-bottom: 1px solid rgba(30,41,59,0.4);
+  font-size: 11px; font-family: var(--code);
+}
+.dupe-file:last-child { border: none; }
+.dupe-file.master { background: rgba(0,255,136,0.04); }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-main">
+      <span class="logo-py">Py</span><span class="logo-matrix">Matrix</span>
+    </div>
+    <div class="sidebar-logo-sub">AI Package Manager</div>
+    <div class="logo-version">v2.0</div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-item active" onclick="showPage('home', this)">
+      <span class="nav-icon">◉</span>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPage('packages', this)">
+      <span class="nav-icon">▶</span>
+      <span>Pakete &amp; Launcher</span>
+      <span class="nav-badge">2</span>
+    </div>
+    <div class="nav-item" onclick="showPage('models', this)">
+      <span class="nav-icon">⬇</span>
+      <span>Model Manager</span>
+    </div>
+    <div class="nav-item" onclick="showPage('downloader', this)">
+      <span class="nav-icon">▼</span>
+      <span>Downloader</span>
+    </div>
+    <div class="nav-item" onclick="showPage('scanner', this)">
+      <span class="nav-icon">◆</span>
+      <span>Scanner</span>
+    </div>
+    <div class="nav-section">TOOLS</div>
+    <div class="nav-item" onclick="showPage('browser', this)">
+      <span class="nav-icon">⊕</span>
+      <span>Paket Browser</span>
+    </div>
+    <div class="nav-item" onclick="showPage('extensions', this)">
+      <span class="nav-icon">⚙</span>
+      <span>Extensions</span>
+    </div>
+    <div class="nav-item" onclick="showPage('sysmon', this)">
+      <span class="nav-icon">📊</span>
+      <span>System Monitor</span>
+    </div>
+    <div class="nav-item" onclick="showPage('settings', this)">
+      <span class="nav-icon">≡</span>
+      <span>Einstellungen</span>
+    </div>
+  </div>
+
+  <div class="running-section">
+    <div class="running-title">Laufend</div>
+    <div class="running-item">
+      <div class="running-dot"></div>
+      <span class="running-name">Forge WebUI</span>
+      <div class="running-stop">■</div>
+    </div>
+    <div class="running-item">
+      <div class="running-dot"></div>
+      <span class="running-name">ComfyUI</span>
+      <div class="running-stop">■</div>
+    </div>
+  </div>
+
+  <div class="sidebar-status">
+    <span class="status-dot-ok">●</span> SM-Root: OK &nbsp;|&nbsp; 6 Pakete
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-sub" id="topbar-sub">Übersicht & Schnellstart</div>
+    <div style="flex:1"></div>
+    <div class="topbar-time" id="clock">--:--:--</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="showPage('packages', document.querySelector('.nav-item:nth-child(2)'))">▶▶ Alle starten</button>
+      <button class="btn btn-ghost">↺ Neu laden</button>
+    </div>
+  </div>
+
+  <!-- ── Page: Dashboard ── -->
+  <div class="content page active" id="page-home">
+
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat-card" style="--accent: var(--cyan)">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">6</div>
+        <div class="stat-label">Pakete</div>
+      </div>
+      <div class="stat-card" style="--accent: var(--green)">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value">2</div>
+        <div class="stat-label">Laufend</div>
+      </div>
+      <div class="stat-card" style="--accent: var(--purple)">
+        <div class="stat-icon">🗂</div>
+        <div class="stat-value">1.4k</div>
+        <div class="stat-label">Modelle</div>
+      </div>
+      <div class="stat-card" style="--accent: var(--amber)">
+        <div class="stat-icon">💾</div>
+        <div class="stat-value">387<span style="font-size:18px">GB</span></div>
+        <div class="stat-label">Disk</div>
+      </div>
+      <div class="stat-card" style="--accent: var(--green)">
+        <div class="stat-icon">✓</div>
+        <div class="stat-value">OK</div>
+        <div class="stat-label">SM-Root</div>
+      </div>
+    </div>
+
+    <div class="grid-3-2">
+      <!-- Quick Launch -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">▶</span> Schnellstart</div>
+          <div style="display:flex;gap:6px">
+            <div class="search-bar">
+              <span class="search-icon">⌕</span>
+              <input class="search-input" placeholder="Paket suchen..." type="text" />
+            </div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <!-- Forge running -->
+          <div class="pkg-card running" style="--pkg-color: #fab387">
+            <div class="pkg-status-dot on"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">▶ SD WebUI Forge</div>
+              <div class="pkg-url">🌐 http://127.0.0.1:7860</div>
+              <div class="pkg-meta">lllyasviel/stable-diffusion-webui-forge · main@3a7f9c2</div>
+            </div>
+            <div class="pkg-actions">
+              <span class="tag tag-running">LAUFT</span>
+              <div class="icon-btn blue" title="Browser öffnen">🌐</div>
+              <div class="icon-btn red" title="Stoppen">■</div>
+            </div>
+          </div>
+          <!-- ComfyUI running -->
+          <div class="pkg-card running" style="--pkg-color: #89dceb">
+            <div class="pkg-status-dot on"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">◆ ComfyUI</div>
+              <div class="pkg-url">🌐 http://127.0.0.1:8188</div>
+              <div class="pkg-meta">comfyanonymous/ComfyUI · master@f8e2a41</div>
+            </div>
+            <div class="pkg-actions">
+              <span class="tag tag-running">LAUFT</span>
+              <div class="icon-btn blue">🌐</div>
+              <div class="icon-btn red">■</div>
+            </div>
+          </div>
+          <!-- Forge Neo stopped -->
+          <div class="pkg-card" style="--pkg-color: #cba6f7">
+            <div class="pkg-status-dot off"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">◈ Forge Neo</div>
+              <div class="pkg-meta">lllyasviel/SD-Next · dev@a1c4d88</div>
+            </div>
+            <div class="pkg-actions">
+              <span class="tag tag-stopped">GESTOPPT</span>
+              <div class="icon-btn" title="Details">⚙</div>
+              <div class="icon-btn green" title="Starten">▶</div>
+            </div>
+          </div>
+          <!-- reForge stopped -->
+          <div class="pkg-card" style="--pkg-color: #a6e3a1">
+            <div class="pkg-status-dot off"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">↺ reForge</div>
+              <div class="pkg-meta">Panchovix/stable-diffusion-webui-reForge · main</div>
+            </div>
+            <div class="pkg-actions">
+              <span class="tag tag-stopped">GESTOPPT</span>
+              <div class="icon-btn">⚙</div>
+              <div class="icon-btn green">▶</div>
+            </div>
+          </div>
+          <!-- A1111 stopped -->
+          <div class="pkg-card" style="--pkg-color: #f9e2af">
+            <div class="pkg-status-dot off"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">■ A1111 WebUI</div>
+              <div class="pkg-meta">AUTOMATIC1111/stable-diffusion-webui · master</div>
+            </div>
+            <div class="pkg-actions">
+              <span class="tag tag-stopped">GESTOPPT</span>
+              <div class="icon-btn">⚙</div>
+              <div class="icon-btn green">▶</div>
+            </div>
+          </div>
+          <!-- ForgeClassic stopped -->
+          <div class="pkg-card" style="--pkg-color: #f38ba8">
+            <div class="pkg-status-dot off"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">▷ Forge Classic</div>
+              <div class="pkg-meta">lllyasviel/stable-diffusion-webui-forge · classic</div>
+            </div>
+            <div class="pkg-actions">
+              <span class="tag tag-stopped">GESTOPPT</span>
+              <div class="icon-btn">⚙</div>
+              <div class="icon-btn green">▶</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- Disk Usage -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-accent">◆</span> Model-Ordner</div>
+            <button class="btn btn-ghost" style="height:24px;padding:0 8px;font-size:10px">Scanner</button>
+          </div>
+          <div class="panel-body">
+            <div class="disk-row">
+              <span class="disk-icon">🧠</span>
+              <div class="disk-info">
+                <div class="disk-name">Checkpoints</div>
+                <div class="disk-size">203.4 GB · 42 Dateien</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+              </div>
+              <div class="disk-bar-wrap"><div class="disk-bar-fill" style="width:80%;--bar-color:var(--purple)"></div></div>
+            </div>
+            <div class="disk-row">
+              <span class="disk-icon">🎨</span>
+              <div class="disk-info">
+                <div class="disk-name">LoRA</div>
+                <div class="disk-size">87.2 GB · 234 Dateien</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:34%;background:var(--cyan)"></div></div>
+              </div>
+              <div class="disk-bar-wrap"><div class="disk-bar-fill" style="width:34%;--bar-color:var(--cyan)"></div></div>
+            </div>
+            <div class="disk-row">
+              <span class="disk-icon">🔧</span>
+              <div class="disk-info">
+                <div class="disk-name">ControlNet</div>
+                <div class="disk-size">44.8 GB · 18 Dateien</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:18%;background:var(--amber)"></div></div>
+              </div>
+              <div class="disk-bar-wrap"><div class="disk-bar-fill" style="width:18%;--bar-color:var(--amber)"></div></div>
+            </div>
+            <div class="disk-row">
+              <span class="disk-icon">🌀</span>
+              <div class="disk-info">
+                <div class="disk-name">VAE</div>
+                <div class="disk-size">3.6 GB · 8 Dateien</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:4%;background:var(--green)"></div></div>
+              </div>
+              <div class="disk-bar-wrap"><div class="disk-bar-fill" style="width:4%;--bar-color:var(--green)"></div></div>
+            </div>
+            <div class="disk-row">
+              <span class="disk-icon">📝</span>
+              <div class="disk-info">
+                <div class="disk-name">Embeddings</div>
+                <div class="disk-size">1.2 GB · 156 Dateien</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:2%;background:var(--red)"></div></div>
+              </div>
+              <div class="disk-bar-wrap"><div class="disk-bar-fill" style="width:2%;--bar-color:var(--red)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SM Root Info -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-accent">◉</span> SM Installation</div>
+          </div>
+          <div class="panel-body" style="padding:14px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="color:var(--text-dim);font-size:11px;width:80px;flex-shrink:0">Pfad:</span>
+                <span style="font-family:var(--code);font-size:11px;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Programme/stability_matrix</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="color:var(--text-dim);font-size:11px;width:80px;flex-shrink:0">Status:</span>
+                <span style="color:var(--green);font-size:11px">● Gefunden und lesbar</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="color:var(--text-dim);font-size:11px;width:80px;flex-shrink:0">Pakete:</span>
+                <span style="color:var(--text);font-size:11px">6 installiert</span>
+              </div>
+              <div style="margin-top:6px">
+                <button class="btn btn-ghost" style="height:28px;font-size:10px;gap:4px">📂 Explorer öffnen</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Log Preview -->
+    <div class="terminal">
+      <div class="terminal-topbar">
+        <div class="terminal-dot t-red"></div>
+        <div class="terminal-dot t-yellow"></div>
+        <div class="terminal-dot t-green"></div>
+        <div class="terminal-title">pymatrix — system log</div>
+        <button class="btn btn-ghost" style="height:22px;padding:0 8px;font-size:9px;letter-spacing:1px">LOG →</button>
+      </div>
+      <div class="terminal-body" id="log-output">
+        <span class="t-line"><span class="t-ts">[10:32:01]</span> <span class="t-ok">[Start]</span> <span class="t-pkg">SD WebUI Forge</span> <span class="t-info">— Starte Prozess...</span></span>
+        <span class="t-line"><span class="t-ts">[10:32:03]</span> <span class="t-bracket">[Forge]</span> <span class="t-info">Loading model weights...</span></span>
+        <span class="t-line"><span class="t-ts">[10:32:18]</span> <span class="t-bracket">[Forge]</span> <span class="t-ok">Model loaded in 15.2s</span></span>
+        <span class="t-line"><span class="t-ts">[10:32:19]</span> <span class="t-bracket">[Forge]</span> <span class="t-url">Running on http://127.0.0.1:7860</span></span>
+        <span class="t-line"><span class="t-ts">[10:32:19]</span> <span class="t-ok">[URL erkannt]</span> <span class="t-pkg">Forge</span> <span class="t-url">→ http://127.0.0.1:7860</span></span>
+        <span class="t-line"><span class="t-ts">[10:33:45]</span> <span class="t-ok">[Start]</span> <span class="t-pkg">ComfyUI</span> <span class="t-info">— Starte Prozess...</span></span>
+        <span class="t-line"><span class="t-ts">[10:33:58]</span> <span class="t-bracket">[ComfyUI]</span> <span class="t-url">To see the GUI go to: http://127.0.0.1:8188</span></span>
+        <span class="t-line"><span class="t-ts">[10:33:58]</span> <span class="t-ok">[URL erkannt]</span> <span class="t-pkg">ComfyUI</span> <span class="t-url">→ http://127.0.0.1:8188</span></span>
+        <span class="t-line"><span class="t-ts">[10:47:12]</span> <span class="t-info">Warte auf Eingaben...</span> <span class="t-cursor"></span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page: Packages ── -->
+  <div class="content page" id="page-packages">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)">Pakete &amp; Launcher</h2>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary">▶▶ Alle starten</button>
+      <button class="btn btn-danger">■■ Alle stoppen</button>
+    </div>
+    <div class="grid-3-2">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">▶</span> Installierte Pakete</div>
+          <div class="search-bar">
+            <span class="search-icon">⌕</span>
+            <input class="search-input" placeholder="Suchen..." type="text" />
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="pkg-card running" style="--pkg-color:#fab387">
+            <div class="pkg-status-dot on"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">▶ SD WebUI Forge</div>
+              <div class="pkg-url">🌐 http://127.0.0.1:7860</div>
+            </div>
+            <div class="pkg-actions">
+              <div class="icon-btn blue">🌐</div>
+              <div class="icon-btn red">■</div>
+              <div class="icon-btn">⚙</div>
+            </div>
+          </div>
+          <div class="pkg-card running" style="--pkg-color:#89dceb">
+            <div class="pkg-status-dot on"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">◆ ComfyUI</div>
+              <div class="pkg-url">🌐 http://127.0.0.1:8188</div>
+            </div>
+            <div class="pkg-actions">
+              <div class="icon-btn blue">🌐</div>
+              <div class="icon-btn red">■</div>
+              <div class="icon-btn">⚙</div>
+            </div>
+          </div>
+          <div class="pkg-card" style="--pkg-color:#cba6f7">
+            <div class="pkg-status-dot off"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">◈ Forge Neo</div>
+              <div class="pkg-meta">dev@a1c4d88</div>
+            </div>
+            <div class="pkg-actions">
+              <div class="icon-btn green">▶</div>
+              <div class="icon-btn">⚙</div>
+            </div>
+          </div>
+          <div class="pkg-card" style="--pkg-color:#a6e3a1">
+            <div class="pkg-status-dot off"></div>
+            <div class="pkg-info">
+              <div class="pkg-name">↺ reForge</div>
+              <div class="pkg-meta">main@b2d3e9f</div>
+            </div>
+            <div class="pkg-actions">
+              <div class="icon-btn green">▶</div>
+              <div class="icon-btn">⚙</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Package detail panel -->
+      <div class="panel" style="background:linear-gradient(135deg,var(--bg1) 0%,rgba(250,179,135,0.04) 100%);border-color:rgba(250,179,135,0.2)">
+        <div class="panel-header">
+          <div class="panel-title" style="color:var(--text)">▶ <span style="color:#fab387">SD WebUI Forge</span></div>
+          <span class="tag tag-running">LAUFT</span>
+        </div>
+        <div class="panel-body" style="padding:16px">
+          <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">
+            <div style="display:flex;gap:8px"><span style="color:var(--text-dim);width:70px;font-size:11px">Paket:</span><span style="font-family:var(--code);color:var(--text);font-size:11px">stable-diffusion-webui-forge</span></div>
+            <div style="display:flex;gap:8px"><span style="color:var(--text-dim);width:70px;font-size:11px">Branch:</span><span style="font-family:var(--code);color:var(--cyan);font-size:11px">main</span></div>
+            <div style="display:flex;gap:8px"><span style="color:var(--text-dim);width:70px;font-size:11px">Commit:</span><span style="font-family:var(--code);color:var(--text);font-size:11px">3a7f9c2a</span></div>
+            <div style="display:flex;gap:8px"><span style="color:var(--text-dim);width:70px;font-size:11px">Python:</span><span style="font-family:var(--code);color:var(--text);font-size:11px">3.10.11</span></div>
+            <div style="display:flex;gap:8px"><span style="color:var(--text-dim);width:70px;font-size:11px">URL:</span><span style="font-family:var(--code);color:var(--cyan);font-size:11px">http://127.0.0.1:7860</span></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+            <button class="btn btn-danger" style="height:32px">■ Stoppen</button>
+            <button class="btn" style="background:var(--cyan);color:var(--bg0);height:32px">🌐 Browser</button>
+            <button class="btn btn-ghost" style="height:32px">📂 Explorer</button>
+          </div>
+          <!-- Launch args -->
+          <div style="font-size:9px;letter-spacing:2px;color:var(--text-mute);text-transform:uppercase;margin-bottom:8px">Launch Argumente</div>
+          <div style="background:var(--bg0);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--code);font-size:10px;max-height:120px;overflow-y:auto">
+            <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--purple)">--xformers</span>
+              <span style="color:var(--green)">true</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--purple)">--api</span>
+              <span style="color:var(--green)">true</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--purple)">--port</span>
+              <span style="color:var(--amber)">7860</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0">
+              <span style="color:var(--purple)">--medvram-sdxl</span>
+              <span style="color:var(--green)">true</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost" style="height:28px;font-size:10px;margin-top:8px">💾 Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page: Browser ── -->
+  <div class="content page" id="page-browser">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)">Paket Browser</h2>
+      <div style="flex:1"></div>
+      <div class="search-bar">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" placeholder="Pakete suchen..." type="text" style="width:220px" />
+      </div>
+      <button class="btn btn-ghost">↺ Aktualisieren</button>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="filter-tabs" style="margin:0">
+          <div class="filter-tab active">✓ Installiert</div>
+          <div class="filter-tab">Alle</div>
+          <div class="filter-tab">WebUI</div>
+          <div class="filter-tab">Training</div>
+        </div>
+      </div>
+      <div style="padding:8px;font-size:9px;letter-spacing:2px;color:var(--text-mute);text-transform:uppercase;padding:10px 16px 6px">INSTALLIERTE WEB INTERFACES (6)</div>
+      <div class="catalog-grid">
+        <div class="cat-card" style="--c:#fab387">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">▶ SD WebUI Forge</div>
+          <div class="cat-card-desc">Optimierter Fork von A1111 mit verbesserter Speicherverwaltung</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">SD 1.5</span><span class="cat-tag">SDXL</span><span class="cat-tag">Flux</span>
+          </div>
+          <div class="cat-card-action"><span class="tag tag-installed">✓ Installiert</span></div>
+        </div>
+        <div class="cat-card" style="--c:#89dceb">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">◆ ComfyUI</div>
+          <div class="cat-card-desc">Node-basiertes UI für maximale Flexibilität bei Diffusion-Workflows</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">SD 1.5</span><span class="cat-tag">SDXL</span><span class="cat-tag">Nodes</span>
+          </div>
+          <div class="cat-card-action"><span class="tag tag-installed">✓ Installiert</span></div>
+        </div>
+        <div class="cat-card" style="--c:#cba6f7">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">◈ Forge Neo</div>
+          <div class="cat-card-desc">Weiterentwicklung von Forge mit zusätzlichen Features</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">SDXL</span><span class="cat-tag">Flux</span>
+          </div>
+          <div class="cat-card-action"><span class="tag tag-installed">✓ Installiert</span></div>
+        </div>
+        <div class="cat-card" style="--c:#a6e3a1">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">↺ reForge</div>
+          <div class="cat-card-desc">Community-Fork mit experimentellen Patches für Forge</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">SD 1.5</span><span class="cat-tag">SDXL</span>
+          </div>
+          <div class="cat-card-action"><span class="tag tag-installed">✓ Installiert</span></div>
+        </div>
+      </div>
+      <div style="padding:6px 16px 12px;font-size:9px;letter-spacing:2px;color:var(--text-mute);text-transform:uppercase">WEITERE PAKETE (13)</div>
+      <div class="catalog-grid">
+        <div class="cat-card" style="--c:#94e2d5">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">⚡ InvokeAI</div>
+          <div class="cat-card-desc">Production-grade SD-Interface mit professionellem Workflow-Editor</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">SD 1.5</span><span class="cat-tag">SDXL</span>
+          </div>
+          <div class="cat-card-action"><button class="btn btn-primary" style="height:26px;font-size:10px;padding:0 10px">⬇ Installieren</button></div>
+        </div>
+        <div class="cat-card" style="--c:#f38ba8">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">◉ Fooocus</div>
+          <div class="cat-card-desc">Midjourney-ähnliches Interface mit vereinfachtem Workflow</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">SDXL</span>
+          </div>
+          <div class="cat-card-action"><button class="btn btn-primary" style="height:26px;font-size:10px;padding:0 10px">⬇ Installieren</button></div>
+        </div>
+        <div class="cat-card" style="--c:#f9e2af">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">■ kohya_ss</div>
+          <div class="cat-card-desc">GUI für LoRA/DreamBooth Training mit umfangreichen Einstellungen</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">Training</span><span class="cat-tag">LoRA</span>
+          </div>
+          <div class="cat-card-action"><button class="btn btn-primary" style="height:26px;font-size:10px;padding:0 10px">⬇ Installieren</button></div>
+        </div>
+        <div class="cat-card" style="--c:#b4befe">
+          <div class="cat-stripe"></div>
+          <div class="cat-card-name">▷ Wan2GP</div>
+          <div class="cat-card-desc">Video-Generierung mit Wan2.1 Modellen — Text-to-Video & Image-to-Video</div>
+          <div class="cat-card-tags">
+            <span class="cat-tag">Video</span><span class="cat-tag">Wan2.1</span>
+          </div>
+          <div class="cat-card-action"><button class="btn btn-primary" style="height:26px;font-size:10px;padding:0 10px">⬇ Installieren</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page: Extensions ── -->
+  <div class="content page" id="page-extensions">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)">Extension Manager</h2>
+      <span style="color:var(--text-dim);font-size:13px">ComfyUI Custom Nodes &amp; A1111 Extensions</span>
+    </div>
+
+    <!-- Featured: LoRA Manager -->
+    <div class="lora-featured">
+      <div class="lora-featured-badge">⭐ Featured</div>
+      <div class="lora-featured-name">ComfyUI LoRA Manager</div>
+      <div class="lora-featured-by">by willmiao — github.com/willmiao/ComfyUI-Lora-Manager</div>
+      <div class="lora-features">
+        <div class="lora-feat-item"><span class="lora-feat-dot">●</span>CivitAI Thumbnail-Sync</div>
+        <div class="lora-feat-item"><span class="lora-feat-dot">●</span>Aktivierungs-Tags</div>
+        <div class="lora-feat-item"><span class="lora-feat-dot">●</span>Ordner-Browser</div>
+        <div class="lora-feat-item"><span class="lora-feat-dot">●</span>Top-Picks Sidebar</div>
+        <div class="lora-feat-item"><span class="lora-feat-dot">●</span>Metadaten-Sync</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <span style="color:var(--green);font-size:11px">✓ ComfyUI: Installiert</span>
+      </div>
+      <div class="lora-btn-row">
+        <button class="btn" style="background:var(--amber);color:var(--bg0);font-weight:700">⬇ In ComfyUI installieren</button>
+        <button class="btn btn-ghost">⎋ GitHub öffnen</button>
+        <div style="margin-left:auto;font-size:10px;color:var(--text-dim);font-family:var(--code)">ComfyUI 127.0.0.1:8188 ▾</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- ComfyUI Nodes -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">◆</span> ComfyUI Custom Nodes</div>
+          <div class="search-bar" style="height:26px">
+            <span class="search-icon">⌕</span>
+            <input class="search-input" placeholder="Suchen..." type="text" style="width:130px" />
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="pkg-card" style="--pkg-color:#89dceb">
+            <div class="pkg-info">
+              <div class="pkg-name">ComfyUI-Manager</div>
+              <div class="pkg-meta">ltdrdata · Erweiterungsmanager für ComfyUI</div>
+            </div>
+            <div class="pkg-actions"><span class="tag tag-installed">✓</span></div>
+          </div>
+          <div class="pkg-card" style="--pkg-color:#fab387">
+            <div class="pkg-info">
+              <div class="pkg-name">ComfyUI_IPAdapter_plus</div>
+              <div class="pkg-meta">cubiq · IPAdapter Implementierung</div>
+            </div>
+            <div class="pkg-actions"><span class="tag tag-installed">✓</span></div>
+          </div>
+          <div class="pkg-card" style="--pkg-color:#cba6f7">
+            <div class="pkg-info">
+              <div class="pkg-name">ComfyUI-ControlNet-Aux</div>
+              <div class="pkg-meta">Fannovel16 · ControlNet Preprocessoren</div>
+            </div>
+            <div class="pkg-actions">
+              <div class="icon-btn green" style="width:70px;border-radius:5px;font-size:10px">⬇ Install</div>
+            </div>
+          </div>
+          <div class="pkg-card" style="--pkg-color:#94e2d5">
+            <div class="pkg-info">
+              <div class="pkg-name">ComfyUI-Impact-Pack</div>
+              <div class="pkg-meta">ltdrdata · ADetailer, Detailer, Sampler</div>
+            </div>
+            <div class="pkg-actions">
+              <div class="icon-btn green" style="width:70px;border-radius:5px;font-size:10px">⬇ Install</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LoRA Folders -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span style="color:var(--amber)">⭐</span> LoRA Ordner-Übersicht</div>
+          <button class="btn btn-ghost" style="height:24px;font-size:10px">↺ Neu laden</button>
+        </div>
+        <div class="panel-body">
+          <div style="font-family:var(--head);font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">Gesamt: 234 LoRA-Dateien</div>
+          <div class="disk-row" style="font-size:11px">
+            <span class="disk-icon">📁</span>
+            <div class="disk-info"><div class="disk-name">(root)</div><div class="disk-size">89 LoRAs</div></div>
+            <div class="disk-bar-wrap" style="width:80px"><div class="disk-bar-fill" style="width:100%;--bar-color:var(--amber)"></div></div>
+          </div>
+          <div class="disk-row" style="font-size:11px">
+            <span class="disk-icon">📁</span>
+            <div class="disk-info"><div class="disk-name">characters</div><div class="disk-size">62 LoRAs</div></div>
+            <div class="disk-bar-wrap" style="width:80px"><div class="disk-bar-fill" style="width:70%;--bar-color:var(--cyan)"></div></div>
+          </div>
+          <div class="disk-row" style="font-size:11px">
+            <span class="disk-icon">📁</span>
+            <div class="disk-info"><div class="disk-name">styles</div><div class="disk-size">48 LoRAs</div></div>
+            <div class="disk-bar-wrap" style="width:80px"><div class="disk-bar-fill" style="width:54%;--bar-color:var(--purple)"></div></div>
+          </div>
+          <div class="disk-row" style="font-size:11px">
+            <span class="disk-icon">📁</span>
+            <div class="disk-info"><div class="disk-name">concepts</div><div class="disk-size">35 LoRAs</div></div>
+            <div class="disk-bar-wrap" style="width:80px"><div class="disk-bar-fill" style="width:40%;--bar-color:var(--green)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page: Downloader ── -->
+  <div class="content page" id="page-downloader">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)">Downloader</h2>
+    </div>
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-accent">▼</span> URL eingeben</div>
+      </div>
+      <div class="dl-input-row">
+        <input class="dl-url-input" placeholder="CivitAI URL oder HuggingFace URL eingeben... z.B. https://civitai.com/models/4384" type="text" />
+        <button class="btn btn-primary">→ Laden</button>
+      </div>
+      <div style="display:flex;gap:6px;padding:0 12px 12px">
+        <span class="tag tag-stopped">CivitAI</span>
+        <span class="tag tag-stopped">HuggingFace</span>
+        <span style="font-size:10px;color:var(--text-dim);align-self:center;margin-left:6px">Unterstützte Quellen</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-accent">▼</span> Download Queue</div>
+      </div>
+      <div class="panel-body">
+        <!-- Active download -->
+        <div class="dl-queue-item" style="border-color:rgba(0,212,255,0.25)">
+          <div class="dl-thumb">🧠</div>
+          <div class="dl-info">
+            <div class="dl-name">dreamshaper_8.safetensors</div>
+            <div class="dl-meta">CivitAI · Checkpoint · SD 1.5 · 2.13 GB</div>
+            <div class="progress-bar" style="margin-top:6px">
+              <div class="progress-fill" style="width:67%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px">
+              <span style="font-size:10px;color:var(--cyan)">67% · 1.43 GB / 2.13 GB</span>
+              <span style="font-size:10px;color:var(--text-dim)">43.2 MB/s · ~16s verbleibend</span>
+            </div>
+          </div>
+          <div class="icon-btn red">✕</div>
+        </div>
+        <!-- Queued -->
+        <div class="dl-queue-item">
+          <div class="dl-thumb">🎨</div>
+          <div class="dl-info">
+            <div class="dl-name">detail_tweaker_lora.safetensors</div>
+            <div class="dl-meta">CivitAI · LoRA · SD 1.5 · 144 MB</div>
+          </div>
+          <span class="tag tag-stopped">Wartend</span>
+        </div>
+        <!-- Done -->
+        <div class="dl-queue-item" style="border-color:rgba(0,255,136,0.15)">
+          <div class="dl-thumb">✓</div>
+          <div class="dl-info">
+            <div class="dl-name">v1-5-pruned.safetensors</div>
+            <div class="dl-meta">HuggingFace · Checkpoint · 4.27 GB · ✓ Fertig</div>
+          </div>
+          <span class="tag tag-running">✓ Fertig</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page: Settings ── -->
+  <div class="content page" id="page-settings">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)">⚙ Einstellungen</h2>
+      <span style="color:var(--text-dim);font-size:12px">PyMatrix v2.0.0</span>
+    </div>
+    <div style="max-width:680px">
+      <!-- SM Root -->
+      <div style="font-size:9px;letter-spacing:3px;color:var(--text-mute);text-transform:uppercase;margin-bottom:8px">STABILITY MATRIX INSTALLATION</div>
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-body" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="color:var(--text-dim);font-size:12px;width:150px;flex-shrink:0">SM-Root Ordner:</span>
+            <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:0 12px;height:32px;display:flex;align-items:center">
+              <span style="font-family:var(--code);font-size:11px;color:var(--cyan)">D:/Programme/stability_matrix</span>
+            </div>
+            <button class="btn btn-ghost" style="height:32px">📂</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Keys -->
+      <div style="font-size:9px;letter-spacing:3px;color:var(--text-mute);text-transform:uppercase;margin-bottom:8px">API KEYS</div>
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-body" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="color:var(--text-dim);font-size:12px;width:150px;flex-shrink:0">CivitAI API Key:</span>
+            <input type="password" placeholder="••••••••••••••••••••" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:0 12px;height:32px;color:var(--text);font-family:var(--code);font-size:12px;outline:none;" />
+          </div>
+          <div style="color:var(--text-mute);font-size:10px;padding-left:162px">Benötigt für NSFW-Inhalte und erweiterte Metadaten</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="color:var(--text-dim);font-size:12px;width:150px;flex-shrink:0">HuggingFace Token:</span>
+            <input type="password" placeholder="hf_••••••••••••••••••" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:0 12px;height:32px;color:var(--text);font-family:var(--code);font-size:12px;outline:none;" />
+          </div>
+          <div style="color:var(--text-mute);font-size:10px;padding-left:162px">Benötigt für private und gated Modelle</div>
+        </div>
+      </div>
+
+      <!-- App settings -->
+      <div style="font-size:9px;letter-spacing:3px;color:var(--text-mute);text-transform:uppercase;margin-bottom:8px">ANWENDUNG</div>
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-body" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="color:var(--text-dim);font-size:12px;width:150px;flex-shrink:0">Erscheinungsbild:</span>
+            <div style="display:flex;gap:4px">
+              <button class="btn" style="background:var(--bg0);border:1px solid var(--cyan);color:var(--cyan);height:28px;font-size:11px">dark</button>
+              <button class="btn btn-ghost" style="height:28px;font-size:11px">light</button>
+              <button class="btn btn-ghost" style="height:28px;font-size:11px">system</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="height:40px;font-size:13px;gap:8px;padding:0 24px">💾 Einstellungen speichern</button>
+    </div>
+  </div>
+
+  <!-- ── Page: System Monitor ── -->
+  <div class="content page" id="page-sysmon">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)">📊 System Monitor</h2>
+      <div id="sysmon-status" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green)">
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:dot-glow 1.5s infinite"></span>
+        Live — aktualisiert jede Sekunde
+      </div>
+    </div>
+
+    <!-- GPU Row -->
+    <div style="font-size:9px;letter-spacing:3px;color:var(--text-mute);text-transform:uppercase;margin-bottom:10px">GRAFIKKARTE</div>
+    <div id="gpu-cards" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <!-- GPU Load -->
+      <div class="panel" style="background:linear-gradient(135deg,var(--bg1),rgba(0,212,255,0.04))">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">◈</span> GPU Load</div>
+        </div>
+        <div class="panel-body" style="padding:14px;text-align:center">
+          <div style="position:relative;width:80px;height:80px;margin:0 auto 10px">
+            <canvas id="gauge-gpu" width="80" height="80"></canvas>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+              <span id="gpu-load-val" style="font-family:var(--head);font-size:20px;font-weight:700;color:var(--cyan)">87</span>
+              <span style="font-size:9px;color:var(--text-dim)">%</span>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim)">NVIDIA RTX 3080</div>
+          <div id="gpu-load-bar" class="progress-bar" style="margin-top:8px"><div id="gpu-load-fill" class="progress-fill" style="width:87%"></div></div>
+        </div>
+      </div>
+
+      <!-- VRAM -->
+      <div class="panel" style="background:linear-gradient(135deg,var(--bg1),rgba(167,139,250,0.06))">
+        <div class="panel-header">
+          <div class="panel-title"><span style="color:var(--purple)">▣</span> VRAM</div>
+        </div>
+        <div class="panel-body" style="padding:14px">
+          <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:4px">
+            <span id="vram-used" style="font-family:var(--head);font-size:28px;font-weight:700;color:var(--purple)">8.4</span>
+            <span style="color:var(--text-dim);font-size:12px">/ 10 GB</span>
+          </div>
+          <div class="progress-bar" style="height:6px;margin-bottom:8px">
+            <div id="vram-fill" class="progress-fill" style="width:84%;background:var(--purple)"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between;font-size:10px">
+              <span style="color:var(--text-dim)">Forge WebUI</span>
+              <span style="color:var(--purple);font-family:var(--code)">6.1 GB</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px">
+              <span style="color:var(--text-dim)">ComfyUI</span>
+              <span style="color:var(--purple);font-family:var(--code)">2.3 GB</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px">
+              <span style="color:var(--text-dim)">System</span>
+              <span style="color:var(--text-dim);font-family:var(--code)">0.3 GB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GPU Temp -->
+      <div class="panel" style="background:linear-gradient(135deg,var(--bg1),rgba(255,170,0,0.04))">
+        <div class="panel-header">
+          <div class="panel-title"><span style="color:var(--amber)">🌡</span> GPU Temp</div>
+        </div>
+        <div class="panel-body" style="padding:14px;text-align:center">
+          <div id="gpu-temp-val" style="font-family:var(--head);font-size:48px;font-weight:800;color:var(--amber);line-height:1;margin-bottom:4px">72</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px">°C</div>
+          <div style="display:flex;justify-content:center;gap:12px;font-size:10px">
+            <div style="text-align:center"><div style="color:var(--text-dim)">Min</div><div style="color:var(--text);font-family:var(--code)">38°C</div></div>
+            <div style="text-align:center"><div style="color:var(--text-dim)">Max</div><div id="gpu-temp-max" style="color:var(--amber);font-family:var(--code)">79°C</div></div>
+            <div style="text-align:center"><div style="color:var(--text-dim)">Fan</div><div id="gpu-fan" style="color:var(--green);font-family:var(--code)">68%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GPU Power -->
+      <div class="panel" style="background:linear-gradient(135deg,var(--bg1),rgba(255,59,92,0.04))">
+        <div class="panel-header">
+          <div class="panel-title"><span style="color:var(--red)">⚡</span> Power</div>
+        </div>
+        <div class="panel-body" style="padding:14px;text-align:center">
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:12px">
+            <span id="gpu-watt" style="font-family:var(--head);font-size:36px;font-weight:800;color:var(--red)">285</span>
+            <span style="color:var(--text-dim);font-size:14px">W</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:6px">TDP: 320W</div>
+          <div class="progress-bar" style="height:4px">
+            <div id="gpu-pwr-fill" class="progress-fill" style="width:89%;background:var(--red)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:8px">
+            <span style="color:var(--text-dim)">PCIe</span>
+            <span style="color:var(--text-dim)">75W + 2×75W</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CPU + RAM Row -->
+    <div style="font-size:9px;letter-spacing:3px;color:var(--text-mute);text-transform:uppercase;margin-bottom:10px">PROZESSOR &amp; ARBEITSSPEICHER</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:20px">
+
+      <!-- CPU Cores -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">◉</span> CPU — Ryzen 9 5950X (16C / 32T)</div>
+          <div style="display:flex;align-items:center;gap:6px;font-family:var(--code);font-size:11px">
+            <span style="color:var(--text-dim)">Ø</span>
+            <span id="cpu-avg" style="color:var(--cyan)">34%</span>
+            <span style="color:var(--text-dim)">|</span>
+            <span id="cpu-freq" style="color:var(--text-dim)">3.8 GHz</span>
+            <span style="color:var(--text-dim)">|</span>
+            <span id="cpu-temp" style="color:var(--green)">52°C</span>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:12px">
+          <div id="cpu-cores" style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px"></div>
+        </div>
+      </div>
+
+      <!-- RAM -->
+      <div class="panel" style="background:linear-gradient(135deg,var(--bg1),rgba(0,255,136,0.03))">
+        <div class="panel-header">
+          <div class="panel-title"><span style="color:var(--green)">▦</span> RAM</div>
+        </div>
+        <div class="panel-body" style="padding:14px">
+          <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:4px">
+            <span id="ram-used" style="font-family:var(--head);font-size:28px;font-weight:700;color:var(--green)">28.4</span>
+            <span style="color:var(--text-dim);font-size:12px">/ 64 GB</span>
+          </div>
+          <div class="progress-bar" style="height:6px;margin-bottom:10px">
+            <div id="ram-fill" class="progress-fill" style="width:44%;background:var(--green)"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between;font-size:10px">
+              <span style="color:var(--text-dim)">Forge WebUI</span><span style="color:var(--green);font-family:var(--code)">14.2 GB</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px">
+              <span style="color:var(--text-dim)">ComfyUI</span><span style="color:var(--green);font-family:var(--code)">8.7 GB</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px">
+              <span style="color:var(--text-dim)">System</span><span style="color:var(--text-dim);font-family:var(--code)">5.5 GB</span>
+            </div>
+          </div>
+          <div style="font-size:9px;color:var(--text-mute);margin-top:8px">DDR4-3200 · 2×32 GB</div>
+        </div>
+      </div>
+
+      <!-- CPU Temp + Clock chart placeholder -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span style="color:var(--amber)">🌡</span> CPU Temp</div>
+        </div>
+        <div class="panel-body" style="padding:14px;text-align:center">
+          <div id="cpu-temp-big" style="font-family:var(--head);font-size:48px;font-weight:800;color:var(--green);line-height:1;margin-bottom:4px">52</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">°C — Normal</div>
+          <div style="display:flex;justify-content:center;gap:14px;font-size:10px">
+            <div style="text-align:center"><div style="color:var(--text-dim)">TDP</div><div style="color:var(--text);font-family:var(--code)">105W</div></div>
+            <div style="text-align:center"><div style="color:var(--text-dim)">Takt</div><div id="cpu-takt" style="color:var(--cyan);font-family:var(--code)">4.2 GHz</div></div>
+            <div style="text-align:center"><div style="color:var(--text-dim)">Boost</div><div style="color:var(--amber);font-family:var(--code)">4.9 GHz</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Disk I/O + Network + History -->
+    <div style="font-size:9px;letter-spacing:3px;color:var(--text-mute);text-transform:uppercase;margin-bottom:10px">DISK I/O &amp; NETZWERK</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px;margin-bottom:20px">
+
+      <!-- Disk I/O -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">◆</span> Disk I/O</div>
+        </div>
+        <div class="panel-body" style="padding:14px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+                <span style="color:var(--text-dim)">Lesen</span>
+                <span id="disk-read" style="color:var(--cyan);font-family:var(--code)">245 MB/s</span>
+              </div>
+              <div class="progress-bar" style="height:3px">
+                <div id="disk-read-bar" class="progress-fill" style="width:49%"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+                <span style="color:var(--text-dim)">Schreiben</span>
+                <span id="disk-write" style="color:var(--amber);font-family:var(--code)">87 MB/s</span>
+              </div>
+              <div class="progress-bar" style="height:3px">
+                <div id="disk-write-bar" class="progress-fill" style="width:17%;background:var(--amber)"></div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:9px;color:var(--text-mute)">NVMe SSD · Max 500 MB/s</div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:8px">
+            <span style="color:var(--text-dim)">D: frei</span>
+            <span style="color:var(--text);font-family:var(--code)">425 GB / 2 TB</span>
+          </div>
+          <div class="progress-bar" style="height:3px;margin-top:4px">
+            <div class="progress-fill" style="width:79%;background:var(--red)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Network -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span style="color:var(--teal)">⇅</span> Netzwerk</div>
+        </div>
+        <div class="panel-body" style="padding:14px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+                <span style="color:var(--text-dim)">↓ Download</span>
+                <span id="net-down" style="color:var(--green);font-family:var(--code)">43.2 MB/s</span>
+              </div>
+              <div class="progress-bar" style="height:3px">
+                <div id="net-down-bar" class="progress-fill" style="width:43%;background:var(--green)"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+                <span style="color:var(--text-dim)">↑ Upload</span>
+                <span id="net-up" style="color:var(--teal);font-family:var(--code)">1.2 MB/s</span>
+              </div>
+              <div class="progress-bar" style="height:3px">
+                <div id="net-up-bar" class="progress-fill" style="width:2%;background:var(--teal)"></div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:9px;color:var(--text-mute)">1 Gbit/s Ethernet</div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:8px">
+            <span style="color:var(--text-dim)">Gesamt</span>
+            <span style="color:var(--text);font-family:var(--code)">12.7 GB ↓ heute</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live History Chart -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">~</span> Verlauf (60s)</div>
+          <div style="display:flex;gap:10px;font-size:10px;font-family:var(--code)">
+            <span style="color:var(--cyan)">── GPU</span>
+            <span style="color:var(--purple)">── VRAM</span>
+            <span style="color:var(--green)">── CPU</span>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:8px">
+          <canvas id="history-chart" width="600" height="120" style="width:100%;height:120px"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Process List -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-accent">▶</span> PyMatrix Prozesse</div>
+        <div style="font-size:10px;color:var(--text-dim)">Laufende WebUI-Prozesse</div>
+      </div>
+      <div class="panel-body" style="padding:0">
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:left;padding:8px 14px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);font-weight:400">Prozess</th>
+              <th style="text-align:right;padding:8px 14px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);font-weight:400">CPU</th>
+              <th style="text-align:right;padding:8px 14px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);font-weight:400">RAM</th>
+              <th style="text-align:right;padding:8px 14px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);font-weight:400">VRAM</th>
+              <th style="text-align:right;padding:8px 14px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);font-weight:400">Status</th>
+              <th style="text-align:right;padding:8px 14px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);font-weight:400">PID</th>
+            </tr>
+          </thead>
+          <tbody id="proc-table">
+            <tr style="border-bottom:1px solid var(--border);background:rgba(0,255,136,0.02)">
+              <td style="padding:10px 14px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 6px var(--green)"></span>
+                  <div>
+                    <div style="color:var(--green);font-family:var(--head);font-size:12px;font-weight:600">SD WebUI Forge</div>
+                    <div style="color:var(--text-dim);font-family:var(--code);font-size:10px">python launch.py --xformers --api</div>
+                  </div>
+                </div>
+              </td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--cyan)" id="p1-cpu">18.4%</td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text)" id="p1-ram">14.2 GB</td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--purple)" id="p1-vram">6.1 GB</td>
+              <td style="text-align:right;padding:10px 14px"><span class="tag tag-running">LAUFT</span></td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text-dim)">24182</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);background:rgba(0,212,255,0.02)">
+              <td style="padding:10px 14px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 6px var(--green)"></span>
+                  <div>
+                    <div style="color:var(--cyan);font-family:var(--head);font-size:12px;font-weight:600">ComfyUI</div>
+                    <div style="color:var(--text-dim);font-family:var(--code);font-size:10px">python main.py --port 8188</div>
+                  </div>
+                </div>
+              </td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--cyan)" id="p2-cpu">6.2%</td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text)" id="p2-ram">8.7 GB</td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--purple)" id="p2-vram">2.3 GB</td>
+              <td style="text-align:right;padding:10px 14px"><span class="tag tag-running">LAUFT</span></td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text-dim)">24891</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 14px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:inline-block"></span>
+                  <div>
+                    <div style="color:var(--text-dim);font-family:var(--head);font-size:12px;font-weight:600">PyMatrix (GUI)</div>
+                    <div style="color:var(--text-dim);font-family:var(--code);font-size:10px">python app.py</div>
+                  </div>
+                </div>
+              </td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text-dim)">0.8%</td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text-dim)">0.4 GB</td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text-dim)">—</td>
+              <td style="text-align:right;padding:10px 14px"><span class="tag tag-stopped">IDLE</span></td>
+              <td style="text-align:right;padding:10px 14px;font-family:var(--code);color:var(--text-dim)">22014</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODEL MANAGER 2.0 ══ -->
+  <div class="content page" id="page-models">
+
+    <!-- Sub-Tab Switcher -->
+    <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div class="mm-tab active" onclick="mmShowTab('mm-folders',this)">📁 Ordner-Struktur</div>
+      <div class="mm-tab" onclick="mmShowTab('mm-symlinks',this)">🔗 Auto-Symlinks</div>
+      <div class="mm-tab" onclick="mmShowTab('mm-profiles',this)">◈ Profile</div>
+    </div>
+
+    <!-- ── Ordner-Struktur ── -->
+    <div id="mm-folders">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text);flex:1">📁 Modell-Verzeichnisse</h2>
+        <button class="btn btn-secondary" onclick="mmRefreshFolders()">🔄 Aktualisieren</button>
+        <button class="btn btn-secondary">📂 Explorer</button>
+      </div>
+
+      <!-- Stats strip -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--cyan);font-family:var(--head)" id="mm-stat-models">127</div>
+          <div style="font-size:10px;color:var(--text-dim)">Modelle</div>
+        </div>
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--green);font-family:var(--head)" id="mm-stat-size">284.6 GB</div>
+          <div style="font-size:10px;color:var(--text-dim)">Gesamtgröße</div>
+        </div>
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--amber);font-family:var(--head)">32</div>
+          <div style="font-size:10px;color:var(--text-dim)">Kategorien</div>
+        </div>
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--purple);font-family:var(--head)">12</div>
+          <div style="font-size:10px;color:var(--text-dim)">WebUI-Profile</div>
+        </div>
+      </div>
+
+      <!-- Folder table -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">◆</span> Master-Typen · SharedFolderTypes</div>
+          <span style="font-size:10px;color:var(--text-dim)">D:\Programme\stability_matrix\Models</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table style="width:100%;border-collapse:collapse;font-size:12px" id="mm-folder-table">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border);font-size:10px;color:var(--text-dim)">
+                <th style="padding:8px 12px;text-align:left">Ordner</th>
+                <th style="padding:8px 12px;text-align:right">Dateien</th>
+                <th style="padding:8px 12px;text-align:right">Größe</th>
+                <th style="padding:8px 12px;text-align:right">Symlinks</th>
+                <th style="padding:8px 10px;text-align:left;min-width:120px">Anteil</th>
+              </tr>
+            </thead>
+            <tbody id="mm-folder-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Auto-Symlinks ── -->
+    <div id="mm-symlinks" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text);flex:1">🔗 Multi-WebUI Symlinks</h2>
+        <div class="panel" style="padding:6px 12px;display:flex;align-items:center;gap:8px;font-size:11px">
+          <span style="color:var(--text-dim)">Dry-Run</span>
+          <div class="cyber-toggle" id="mm-dryrun" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <button class="btn btn-secondary" onclick="mmCheckSymlinks()">🔍 Prüfen</button>
+        <button class="btn btn-primary" onclick="mmApplyAllSymlinks()">⚡ Alle anwenden</button>
+      </div>
+
+      <!-- Apply progress -->
+      <div id="mm-sym-progress" class="panel" style="display:none;padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px">
+          <span id="mm-sym-status" style="color:var(--text)">Verarbeite…</span>
+          <span id="mm-sym-pct" style="color:var(--cyan);font-weight:600">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="mm-sym-bar" style="width:0%"></div></div>
+      </div>
+
+      <!-- Symlink Matrix (compact) -->
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-accent">⊞</span> Symlink-Matrix</div>
+          <span id="mm-matrix-count" style="font-size:10px;color:var(--green)">0 verlinkt</span>
+        </div>
+        <div class="panel-body" style="padding:0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:10px;font-family:var(--code)" id="mm-matrix-table">
+            <!-- Generated by JS -->
+          </table>
+        </div>
+      </div>
+
+      <!-- Per-package symlink cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px" id="mm-sym-cards"></div>
+    </div>
+
+    <!-- ── Profile Detail ── -->
+    <div id="mm-profiles" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text);flex:1">◈ WebUI-Profile</h2>
+        <button class="btn btn-secondary">➕ Neues Profil</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px" id="mm-profile-cards"></div>
+    </div>
+
+  </div><!-- /page-models -->
+
+  <!-- ══ SCANNER + DUPLIKATE ══ -->
+  <div class="content page" id="page-scanner">
+
+    <!-- Sub-Tab Switcher -->
+    <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div class="sc-tab active" onclick="scShowTab('sc-scan',this)">🔍 Scanner</div>
+      <div class="sc-tab" onclick="scShowTab('sc-dupes',this)">♊ Duplikate</div>
+      <div class="sc-tab" onclick="scShowTab('sc-orphans',this)">⚠ Waisen</div>
+    </div>
+
+    <!-- ── Scanner ── -->
+    <div id="sc-scan">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text);flex:1">🔍 Modell-Scanner</h2>
+        <button class="btn btn-primary" onclick="scRunScan()">🔍 Scan starten</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><span class="panel-accent">◆</span> Speicher-Verteilung</div></div>
+          <div class="panel-body" id="sc-bars"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><span class="panel-accent">◆</span> Statistiken</div></div>
+          <div class="panel-body" id="sc-stats"></div>
+        </div>
+      </div>
+
+      <!-- Format distribution -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span class="panel-accent">◆</span> Format-Verteilung</div></div>
+        <div class="panel-body" id="sc-formats" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+
+    <!-- ── Duplikate ── -->
+    <div id="sc-dupes" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text);flex:1">♊ Duplikat-Finder</h2>
+        <button class="btn btn-primary" onclick="scScanDupes()">🔄 Neu scannen</button>
+        <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="scDeleteAllDupes()">🗑 Alle löschen</button>
+      </div>
+
+      <!-- Summary -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--red);font-family:var(--head)" id="sc-d-groups">7</div>
+          <div style="font-size:10px;color:var(--text-dim)">Gruppen</div>
+        </div>
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--amber);font-family:var(--head)" id="sc-d-files">18</div>
+          <div style="font-size:10px;color:var(--text-dim)">Dateien</div>
+        </div>
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--text);font-family:var(--head)" id="sc-d-wasted">47.3 GB</div>
+          <div style="font-size:10px;color:var(--text-dim)">Verschwendet</div>
+        </div>
+        <div class="panel" style="padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--green);font-family:var(--head)">127</div>
+          <div style="font-size:10px;color:var(--text-dim)">Gescannt</div>
+        </div>
+      </div>
+
+      <div id="sc-dupe-list"></div>
+    </div>
+
+    <!-- ── Waisen ── -->
+    <div id="sc-orphans" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <h2 style="font-family:var(--head);font-size:22px;font-weight:700;color:var(--text);flex:1">⚠ Waisen-Dateien</h2>
+        <span id="sc-orphan-badge" class="tag tag-stopped">3 gefunden</span>
+      </div>
+      <div id="sc-orphan-list"></div>
+    </div>
+
+  </div><!-- /page-scanner -->
+
+</div><!-- /main -->
+
+<script>
+// ── Navigation ────────────────────────────────────────────
+const TITLES = {
+  home:       ['Dashboard', 'Übersicht & Schnellstart'],
+  packages:   ['Pakete & Launcher', 'WebUIs starten und verwalten'],
+  models:     ['Model Manager', 'Symlinks, Profile, Master-Typen'],
+  downloader: ['Downloader', 'CivitAI & HuggingFace'],
+  scanner:    ['Scanner', 'Ordnergrößen & Duplikate'],
+  browser:    ['Paket Browser', 'Neue WebUIs installieren'],
+  extensions: ['Extension Manager', 'Custom Nodes & Extensions'],
+  sysmon:     ['System Monitor', 'GPU · CPU · RAM · Disk I/O'],
+  settings:   ['Einstellungen', 'PyMatrix v2.0.0'],
+};
+
+function showPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  const t = TITLES[id] || ['', ''];
+  document.getElementById('topbar-title').textContent = t[0];
+  document.getElementById('topbar-sub').textContent   = t[1];
+}
+
+// ── Clock ─────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('de-DE', { hour12: false });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── Filter tabs ───────────────────────────────────────────
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    tab.closest('.filter-tabs')
+       .querySelectorAll('.filter-tab')
+       .forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+// ── Log auto-scroll ───────────────────────────────────────
+const logOut = document.getElementById('log-output');
+if (logOut) logOut.scrollTop = logOut.scrollHeight;
+
+// ── System Monitor Live Data ───────────────────────────────
+const histGpu  = Array(60).fill(87);
+const histVram = Array(60).fill(84);
+const histCpu  = Array(60).fill(34);
+
+function rnd(base, range) {
+  return Math.max(0, Math.min(100, base + (Math.random() - 0.5) * range));
+}
+
+function drawHistory() {
+  const c = document.getElementById('history-chart');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(30,41,59,0.8)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = (H / 4) * i;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  function drawLine(data, color) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = color;
+    data.forEach((v, i) => {
+      const x = (i / (data.length - 1)) * W;
+      const y = H - (v / 100) * H;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Fill under
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fillStyle = color.replace(')', ',0.05)').replace('rgb', 'rgba');
+    ctx.fill();
+  }
+
+  drawLine(histGpu,  '#00d4ff');
+  drawLine(histVram, '#a78bfa');
+  drawLine(histCpu,  '#00ff88');
+}
+
+function drawCoreBars() {
+  const container = document.getElementById('cpu-cores');
+  if (!container) return;
+  const cores = JSON.parse(container.dataset.cores || '[]');
+  if (!cores.length) return;
+  container.innerHTML = '';
+  cores.forEach(v => {
+    const col = v > 80 ? 'var(--red)' : v > 50 ? 'var(--amber)' : 'var(--cyan)';
+    container.innerHTML += `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+        <div style="width:100%;height:40px;background:var(--bg3);border-radius:3px;overflow:hidden;display:flex;flex-direction:column-reverse">
+          <div style="width:100%;background:${col};height:${v}%;transition:height 0.5s"></div>
+        </div>
+        <div style="font-size:8px;color:var(--text-dim);font-family:var(--code)">${v}%</div>
+      </div>`;
+  });
+}
+
+let coreData = Array(16).fill(0).map(() => Math.round(rnd(30, 40)));
+
+function updateSysmon() {
+  // GPU
+  const gpuLoad = Math.round(rnd(85, 14));
+  const gpuTemp = Math.round(rnd(72, 8));
+  const gpuWatt = Math.round(rnd(285, 30));
+  const vramUsed = (rnd(8.4, 0.6)).toFixed(1);
+
+  const el = (id) => document.getElementById(id);
+  if (el('gpu-load-val'))  { el('gpu-load-val').textContent  = gpuLoad; el('gpu-load-fill').style.width = gpuLoad + '%'; }
+  if (el('gpu-temp-val'))  el('gpu-temp-val').textContent  = gpuTemp;
+  if (el('gpu-watt'))      { el('gpu-watt').textContent = gpuWatt; el('gpu-pwr-fill').style.width = Math.round(gpuWatt / 3.2) + '%'; }
+  if (el('vram-used'))     { el('vram-used').textContent  = vramUsed; el('vram-fill').style.width = (vramUsed / 10 * 100) + '%'; }
+  if (el('gpu-fan'))       el('gpu-fan').textContent    = Math.round(rnd(68, 10)) + '%';
+
+  // GPU temp color
+  if (el('gpu-temp-val')) {
+    el('gpu-temp-val').style.color = gpuTemp > 80 ? 'var(--red)' : gpuTemp > 70 ? 'var(--amber)' : 'var(--green)';
+  }
+
+  // CPU
+  const cpuAvg = Math.round(rnd(34, 20));
+  const cpuTemp = Math.round(rnd(52, 12));
+  if (el('cpu-avg'))      { el('cpu-avg').textContent  = cpuAvg + '%'; }
+  if (el('cpu-temp'))     { el('cpu-temp').textContent = cpuTemp + '°C'; el('cpu-temp').style.color = cpuTemp > 80 ? 'var(--red)' : cpuTemp > 65 ? 'var(--amber)' : 'var(--green)'; }
+  if (el('cpu-temp-big')) { el('cpu-temp-big').textContent = cpuTemp; el('cpu-temp-big').style.color = cpuTemp > 80 ? 'var(--red)' : cpuTemp > 65 ? 'var(--amber)' : 'var(--green)'; }
+  if (el('cpu-freq'))     el('cpu-freq').textContent = (rnd(38, 8) / 10).toFixed(1) + ' GHz';
+  if (el('cpu-takt'))     el('cpu-takt').textContent = (rnd(42, 6) / 10).toFixed(1) + ' GHz';
+
+  // Cores
+  coreData = coreData.map(v => Math.round(rnd(v, 25)));
+  const coresEl = el('cpu-cores');
+  if (coresEl) { coresEl.dataset.cores = JSON.stringify(coreData); drawCoreBars(); }
+
+  // RAM
+  const ramUsed = (rnd(28.4, 2)).toFixed(1);
+  if (el('ram-used')) { el('ram-used').textContent = ramUsed; el('ram-fill').style.width = (ramUsed / 64 * 100) + '%'; }
+
+  // Disk
+  const dRead = Math.round(rnd(245, 200));
+  const dWrite = Math.round(rnd(87, 80));
+  if (el('disk-read'))  { el('disk-read').textContent  = dRead + ' MB/s';  el('disk-read-bar').style.width  = (dRead / 500 * 100) + '%'; }
+  if (el('disk-write')) { el('disk-write').textContent = dWrite + ' MB/s'; el('disk-write-bar').style.width = (dWrite / 500 * 100) + '%'; }
+
+  // Net
+  const nDown = (rnd(43, 30)).toFixed(1);
+  const nUp   = (rnd(1.2, 2)).toFixed(1);
+  if (el('net-down')) { el('net-down').textContent = nDown + ' MB/s'; el('net-down-bar').style.width = (nDown / 100 * 100) + '%'; }
+  if (el('net-up'))   { el('net-up').textContent   = nUp   + ' MB/s'; el('net-up-bar').style.width   = (nUp   / 100 * 100) + '%'; }
+
+  // Process table flicker
+  if (el('p1-cpu')) el('p1-cpu').textContent = (rnd(18, 15)).toFixed(1) + '%';
+  if (el('p2-cpu')) el('p2-cpu').textContent = (rnd(6, 8)).toFixed(1) + '%';
+
+  // History
+  histGpu.push(gpuLoad);  histGpu.shift();
+  histVram.push(vramUsed / 10 * 100); histVram.shift();
+  histCpu.push(cpuAvg);  histCpu.shift();
+  drawHistory();
+}
+
+// Init cores
+const initCores = el => el && (el.dataset.cores = JSON.stringify(coreData));
+document.addEventListener('DOMContentLoaded', () => {
+  initCores(document.getElementById('cpu-cores'));
+  drawCoreBars();
+  drawHistory();
+});
+setInterval(updateSysmon, 1000);
+
+// ── Animate stat values on load ───────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.stat-value').forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(8px)';
+    setTimeout(() => {
+      el.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, 80 + i * 60);
+  });
+  // Init Model Manager
+  mmBuildFolders();
+  mmBuildSymCards();
+  mmBuildMatrix();
+  mmBuildProfiles();
+  scBuildBars();
+  scBuildOrphans();
+  scBuildDupes();
+});
+
+// ══════════════════════════════════════════════════════════
+// MODEL MANAGER 2.0
+// ══════════════════════════════════════════════════════════
+
+// ── Data ──
+const MM_TYPES = [
+  {key:'StableDiffusion', folder:'Checkpoints',     label:'Checkpoints',      files:42, size:118.4, pct:42},
+  {key:'Lora',            folder:'Lora',             label:'LoRA',             files:31, size:62.1,  pct:22},
+  {key:'ControlNet',      folder:'ControlNet',       label:'ControlNet',       files:18, size:38.6,  pct:14},
+  {key:'VAE',             folder:'VAE',              label:'VAE',              files:7,  size:19.2,  pct:7},
+  {key:'Diffusers',       folder:'Diffusers',        label:'Diffusers',        files:3,  size:18.3,  pct:6},
+  {key:'DiffusionModels', folder:'DiffusionModels',  label:'Diffusion Models', files:2,  size:12.4,  pct:4},
+  {key:'SVD',             folder:'SVD',              label:'SVD',              files:1,  size:9.6,   pct:3},
+  {key:'TextEncoders',    folder:'TextEncoders',     label:'Text Encoders',    files:4,  size:8.2,   pct:3},
+  {key:'GLIGEN',          folder:'GLIGEN',           label:'GLIGEN',           files:2,  size:6.4,   pct:2},
+  {key:'IpAdapter',       folder:'IpAdapter',        label:'IP-Adapter',       files:6,  size:6.1,   pct:2},
+  {key:'IpAdapters15',    folder:'IpAdapters15',     label:'IP-Adapter 1.5',   files:4,  size:5.2,   pct:2},
+  {key:'T2IAdapter',      folder:'T2IAdapter',       label:'T2I-Adapter',      files:3,  size:4.5,   pct:2},
+  {key:'LyCORIS',         folder:'LyCORIS',          label:'LyCORIS',          files:8,  size:4.2,   pct:1},
+  {key:'Upscaler',        folder:'ESRGAN',           label:'Upscaler (ESRGAN)',files:4,  size:0.9,   pct:0},
+  {key:'Embeddings',      folder:'Embeddings',       label:'Embeddings',       files:14, size:0.8,   pct:0},
+  {key:'ClipVision',      folder:'ClipVision',       label:'CLIP Vision',      files:3,  size:3.7,   pct:1},
+  {key:'Hypernetwork',    folder:'hypernetworks',    label:'Hypernetworks',    files:5,  size:2.1,   pct:1},
+  {key:'Ultralytics',     folder:'Ultralytics',      label:'YOLO',             files:5,  size:0.8,   pct:0},
+  {key:'Sams',            folder:'Sams',             label:'SAM',              files:2,  size:2.6,   pct:1},
+];
+
+const MM_PROFILES = [
+  {id:'A1111', name:'Automatic1111', pkg:'stable-diffusion-webui', color:'var(--cyan)', icon:'🔵', enabled:true,
+   rules:[
+    {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+    {src:['Lora'],tgt:'models/Lora'},{src:['LyCORIS'],tgt:'models/LyCORIS'},
+    {src:['VAE'],tgt:'models/VAE'},{src:['ControlNet'],tgt:'models/ControlNet'},
+    {src:['ESRGAN'],tgt:'models/ESRGAN'},{src:['Embeddings'],tgt:'embeddings'},
+    {src:['Hypernetwork'],tgt:'models/hypernetworks'},
+    {src:['IpAdapter'],tgt:'models/controlnet/IpAdapter'},
+    {src:['TextEncoders'],tgt:'models/text_encoder'},
+    {src:['DiffusionModels'],tgt:'models/Stable-diffusion/unet'},
+    {src:['AfterDetailer'],tgt:'models/adetailer'},
+   ]},
+  {id:'ComfyUI', name:'ComfyUI', pkg:'ComfyUI', color:'var(--green)', icon:'🟢', enabled:true,
+   rules:[
+    {src:['StableDiffusion'],tgt:'models/checkpoints'},
+    {src:['Lora','LyCORIS'],tgt:'models/loras'},
+    {src:['VAE'],tgt:'models/vae'},
+    {src:['ControlNet','T2IAdapter'],tgt:'models/controlnet'},
+    {src:['ESRGAN','RealESRGAN','SwinIR'],tgt:'models/upscale_models'},
+    {src:['IpAdapter','IpAdapters15','IpAdaptersXl'],tgt:'models/ipadapter'},
+    {src:['Embeddings'],tgt:'models/embeddings'},
+    {src:['TextEncoders'],tgt:'models/clip'},
+    {src:['ClipVision'],tgt:'models/clip_vision'},
+    {src:['Ultralytics'],tgt:'models/ultralytics'},
+    {src:['Sams'],tgt:'models/sams'},
+    {src:['DiffusionModels'],tgt:'models/diffusion_models'},
+    {src:['Diffusers'],tgt:'models/diffusers'},
+    {src:['GLIGEN'],tgt:'models/gligen'},
+   ]},
+  {id:'Forge', name:'Forge', pkg:'stable-diffusion-webui-forge', color:'var(--red)', icon:'🔴', enabled:true, inherits:'A1111',
+   rules:[
+    {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+    {src:['Lora'],tgt:'models/Lora'},{src:['VAE'],tgt:'models/VAE'},
+    {src:['ControlNet'],tgt:'models/ControlNet'},
+    {src:['IpAdapter'],tgt:'models/controlnet/IpAdapter'},
+    {src:['Embeddings'],tgt:'embeddings'},
+    {src:['TextEncoders'],tgt:'models/text_encoder'},
+    {src:['ClipVision'],tgt:'models/clip_vision'},
+   ]},
+  {id:'KohyaSS', name:'Kohya SS', pkg:'kohya_ss', color:'var(--amber)', icon:'🟠', enabled:true,
+   rules:[
+    {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+    {src:['Lora','LyCORIS'],tgt:'models/Lora'},
+    {src:['VAE'],tgt:'models/VAE'},
+    {src:['TextEncoders'],tgt:'models/text_encoder'},
+   ]},
+  {id:'SDNext', name:'SD.Next', pkg:'vladmandatory', color:'var(--purple)', icon:'🟣', enabled:true,
+   rules:[
+    {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+    {src:['Lora','LyCORIS'],tgt:'models/Lora'},
+    {src:['VAE'],tgt:'models/VAE'},
+    {src:['ControlNet'],tgt:'models/ControlNet'},
+    {src:['Embeddings'],tgt:'embeddings'},
+   ]},
+  {id:'InvokeAI', name:'InvokeAI', pkg:'InvokeAI', color:'#e3b341', icon:'⚡', enabled:true,
+   rules:[
+    {src:['StableDiffusion'],tgt:'autoimport/main'},
+    {src:['Lora'],tgt:'autoimport/lora'},
+    {src:['ControlNet'],tgt:'autoimport/controlnet'},
+    {src:['VAE'],tgt:'autoimport/vae'},
+    {src:['IpAdapter'],tgt:'autoimport/ip_adapter'},
+   ]},
+  {id:'Fooocus', name:'Fooocus', pkg:'Fooocus', color:'#ff9bc4', icon:'🌸', enabled:true,
+   rules:[
+    {src:['StableDiffusion'],tgt:'models/checkpoints'},
+    {src:['Lora'],tgt:'models/loras'},
+    {src:['VAE'],tgt:'models/vae'},
+    {src:['ControlNet'],tgt:'models/controlnet'},
+    {src:['Embeddings'],tgt:'models/embeddings'},
+   ]},
+];
+
+// Tab switching
+function mmShowTab(id, el) {
+  ['mm-folders','mm-symlinks','mm-profiles'].forEach(t => {
+    const e = document.getElementById(t); if(e) e.style.display = 'none';
+  });
+  document.getElementById(id).style.display = '';
+  document.querySelectorAll('.mm-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+function scShowTab(id, el) {
+  ['sc-scan','sc-dupes','sc-orphans'].forEach(t => {
+    const e = document.getElementById(t); if(e) e.style.display = 'none';
+  });
+  document.getElementById(id).style.display = '';
+  document.querySelectorAll('.sc-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+// ── Folder Table ──
+function mmBuildFolders() {
+  const tbody = document.getElementById('mm-folder-tbody'); if(!tbody) return;
+  tbody.innerHTML = MM_TYPES.map(t => `
+    <tr class="mm-frow" style="border-bottom:1px solid var(--border);cursor:pointer">
+      <td style="padding:8px 12px">
+        <div style="font-weight:600;color:var(--text)">${t.label}</div>
+        <div style="font-size:10px;color:var(--text-dim);font-family:var(--code)">${t.folder}/</div>
+      </td>
+      <td style="padding:8px 12px;text-align:right;font-family:var(--code);font-size:12px">${t.files}</td>
+      <td style="padding:8px 12px;text-align:right;font-family:var(--code);font-size:12px;color:var(--cyan);font-weight:600">${t.size.toFixed(1)} GB</td>
+      <td style="padding:8px 12px;text-align:right">
+        <span class="tag ${t.files>0?'tag-running':'tag-stopped'}" style="font-size:9px">
+          ${mmCountLinks(t.key)} Links
+        </span>
+      </td>
+      <td style="padding:8px 10px;min-width:120px">
+        <div class="progress-bar" style="height:4px">
+          <div class="progress-fill" style="width:${t.pct}%"></div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function mmCountLinks(typeKey) {
+  return MM_PROFILES.filter(p => p.enabled && p.rules.some(r => r.src.includes(typeKey))).length;
+}
+
+function mmRefreshFolders() {
+  const btn = event.currentTarget;
+  btn.textContent = '⏳ Scanne…';
+  setTimeout(() => { btn.textContent = '🔄 Aktualisieren'; mmBuildFolders(); }, 1500);
+}
+
+// ── Symlink Matrix ──
+function mmBuildMatrix() {
+  const table = document.getElementById('mm-matrix-table'); if(!table) return;
+  const activeProfiles = MM_PROFILES.filter(p => p.enabled);
+  let totalLinked = 0;
+
+  // Header
+  let html = '<thead><tr style="border-bottom:1px solid var(--border)">';
+  html += '<th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--text-dim);min-width:110px;position:sticky;left:0;background:var(--bg2);z-index:2">Type</th>';
+  activeProfiles.forEach(p => {
+    html += `<th style="padding:6px 4px;text-align:center;border-left:1px solid var(--border);font-size:9px;color:${p.color};min-width:68px">${p.name}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  // Rows
+  MM_TYPES.forEach(t => {
+    html += `<tr style="border-bottom:1px solid rgba(30,41,59,0.4)">`;
+    html += `<td style="padding:4px 10px;font-size:10px;color:var(--text);position:sticky;left:0;background:var(--bg2);z-index:1">${t.label}</td>`;
+    activeProfiles.forEach(p => {
+      const rule = p.rules.find(r => r.src.includes(t.key));
+      if (!rule) {
+        html += `<td style="border-left:1px solid var(--border)"><div class="mx-cell none">·</div></td>`;
+      } else if (rule.src.length > 1) {
+        html += `<td style="border-left:1px solid var(--border)"><div class="mx-cell merged" title="${rule.src.join('+')} → ${rule.tgt}">${rule.tgt.split('/').pop()}</div></td>`;
+        totalLinked++;
+      } else {
+        html += `<td style="border-left:1px solid var(--border)"><div class="mx-cell linked" title="${rule.tgt}">✓</div></td>`;
+        totalLinked++;
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+  const cnt = document.getElementById('mm-matrix-count');
+  if (cnt) cnt.textContent = totalLinked + ' verlinkt';
+}
+
+// ── Symlink Cards ──
+function mmBuildSymCards() {
+  const el = document.getElementById('mm-sym-cards'); if(!el) return;
+  el.innerHTML = MM_PROFILES.filter(p=>p.enabled).map(p => {
+    const total = p.rules.length;
+    return `
+    <div class="sym-card ok">
+      <div class="sym-card-head">
+        <span style="font-size:16px">${p.icon}</span>
+        <div style="flex:1">
+          <div style="font-weight:600;color:${p.color};font-size:13px">${p.name}</div>
+          <div style="font-size:9px;color:var(--text-dim);font-family:var(--code)">${p.pkg}</div>
+        </div>
+        ${p.inherits ? '<span class="tag tag-stopped" style="font-size:8px">↳ '+p.inherits+'</span>' : ''}
+        <span class="tag tag-running" style="font-size:9px">${total}/${total}</span>
+      </div>
+      <div class="sym-card-body">
+        ${p.rules.slice(0,6).map(r => `
+          <div class="sym-rule">
+            <span style="color:var(--cyan)">${r.src.join('+')}</span>
+            <span style="color:var(--text-dim)">→</span>
+            <span style="color:var(--green)">${r.tgt}</span>
+          </div>
+        `).join('')}
+        ${p.rules.length > 6 ? `<div style="text-align:center;font-size:9px;color:var(--text-dim);padding:4px 0">+${p.rules.length-6} weitere…</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Profiles ──
+function mmBuildProfiles() {
+  const el = document.getElementById('mm-profile-cards'); if(!el) return;
+  el.innerHTML = MM_PROFILES.map(p => `
+    <div class="panel" style="overflow:hidden;border-color:${p.enabled ? p.color.replace('var(','').replace(')','') : 'var(--border)'}22">
+      <div class="panel-header" style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">${p.icon}</span>
+        <div style="flex:1">
+          <div class="panel-title" style="color:${p.color}">${p.name}</div>
+          <div style="font-size:9px;color:var(--text-dim)">${p.pkg}</div>
+        </div>
+        ${p.inherits ? '<span class="tag tag-stopped" style="font-size:8px">erbt: '+p.inherits+'</span>' : ''}
+        <div class="cyber-toggle ${p.enabled?'on':''}" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="panel-body" style="max-height:200px;overflow-y:auto;padding:6px 12px">
+        ${p.rules.map(r => `
+          <div class="sym-rule">
+            <span style="color:var(--cyan);min-width:90px">${r.src.join('+')}</span>
+            <span style="color:var(--text-dim)">→</span>
+            <span style="color:var(--green);word-break:break-all">${r.tgt}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:6px;align-items:center">
+        <span style="font-size:9px;color:var(--text-dim)">${p.rules.length} Regeln</span>
+        <button class="btn btn-secondary" style="margin-left:auto;font-size:10px;padding:4px 10px" onclick="mmApplyProfile('${p.id}')">🔗 Anwenden</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Apply ──
+function mmApplyAllSymlinks() {
+  const prog = document.getElementById('mm-sym-progress');
+  prog.style.display = '';
+  let p = 0;
+  const iv = setInterval(() => {
+    p = Math.min(100, p + Math.random()*10);
+    const bar = document.getElementById('mm-sym-bar');
+    const pct = document.getElementById('mm-sym-pct');
+    const stat = document.getElementById('mm-sym-status');
+    if(bar) bar.style.width = p+'%';
+    if(pct) pct.textContent = Math.round(p)+'%';
+    const pi = Math.min(MM_PROFILES.length-1, Math.floor(p/100*MM_PROFILES.length));
+    if(stat) stat.textContent = `Verarbeite ${MM_PROFILES[pi].name} (${pi+1}/${MM_PROFILES.length})…`;
+    if(p>=100) { clearInterval(iv); if(stat) stat.textContent='✓ Alle Symlinks angewendet'; setTimeout(()=>{prog.style.display='none';},2000); }
+  }, 120);
+}
+function mmApplyProfile(id) { mmApplyAllSymlinks(); }
+function mmCheckSymlinks() { mmApplyAllSymlinks(); }
+
+// ══════════════════════════════════════════════════════════
+// SCANNER + DUPLIKATE
+// ══════════════════════════════════════════════════════════
+function scBuildBars() {
+  const el = document.getElementById('sc-bars'); if(!el) return;
+  const sorted = MM_TYPES.filter(t=>t.size>0).sort((a,b)=>b.size-a.size);
+  const maxSz = sorted[0].size;
+  el.innerHTML = sorted.map(t => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="min-width:100px;font-size:11px;color:var(--text)">${t.label}</span>
+      <div class="progress-bar" style="flex:1;height:4px"><div class="progress-fill" style="width:${(t.size/maxSz*100).toFixed(0)}%"></div></div>
+      <span style="min-width:55px;text-align:right;font-size:11px;color:var(--cyan);font-family:var(--code)">${t.size.toFixed(1)} GB</span>
+      <span style="min-width:30px;text-align:right;font-size:9px;color:var(--text-dim)">${t.files}f</span>
+    </div>
+  `).join('');
+
+  // Stats
+  const statsEl = document.getElementById('sc-stats'); if(!statsEl) return;
+  const totalGb = MM_TYPES.reduce((s,t)=>s+t.size,0);
+  const totalFiles = MM_TYPES.reduce((s,t)=>s+t.files,0);
+  statsEl.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;font-family:var(--code)">
+      <div style="color:var(--text-dim)">Gesamt:</div><div style="color:var(--green)">${totalGb.toFixed(1)} GB</div>
+      <div style="color:var(--text-dim)">Dateien:</div><div style="color:var(--text)">${totalFiles}</div>
+      <div style="color:var(--text-dim)">Ordner:</div><div style="color:var(--text)">${MM_TYPES.length}</div>
+      <div style="color:var(--text-dim)">Leer:</div><div style="color:var(--amber)">${MM_TYPES.filter(t=>t.files===0).length}</div>
+      <div style="color:var(--text-dim)">Größte:</div><div style="color:var(--text)">9.6 GB (SVD)</div>
+    </div>
+  `;
+
+  // Formats
+  const fmtEl = document.getElementById('sc-formats'); if(!fmtEl) return;
+  const fmts = [{ext:'safetensors',n:108,c:'var(--green)'},{ext:'ckpt',n:8,c:'var(--cyan)'},{ext:'pt',n:7,c:'var(--amber)'},{ext:'pth',n:4,c:'var(--purple)'}];
+  fmtEl.innerHTML = fmts.map(f => `
+    <div class="panel" style="padding:10px 16px;text-align:center;min-width:80px">
+      <div style="font-size:18px;font-weight:700;color:${f.c};font-family:var(--head)">${f.n}</div>
+      <div style="font-size:10px;color:var(--text-dim)">.${f.ext}</div>
+    </div>
+  `).join('');
+}
+
+function scRunScan() {
+  const btn = event.currentTarget;
+  btn.textContent = '⏳ Scannt…'; btn.disabled = true;
+  setTimeout(()=>{ btn.textContent='🔍 Scan starten'; btn.disabled=false; scBuildBars(); }, 2000);
+}
+
+// Orphans
+const SC_ORPHANS = [
+  'Models/Checkpoints/old_test.bin',
+  'Models/Lora/broken_link.pt',
+  'Models/VAE/unnamed_backup.tmp',
+];
+function scBuildOrphans() {
+  const el = document.getElementById('sc-orphan-list'); if(!el) return;
+  el.innerHTML = SC_ORPHANS.map(path => `
+    <div class="panel" style="padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;border-color:rgba(255,59,92,0.2)">
+      <span style="font-family:var(--code);font-size:11px;color:var(--amber)">${path}</span>
+      <button class="btn btn-secondary" style="padding:3px 8px;font-size:10px;color:var(--red);border-color:var(--red)">🗑</button>
+    </div>
+  `).join('');
+}
+
+// Dupes
+const SC_DUPES = [
+  {hash:'a3f8c1d2…',size:'6.8 GB',files:['Checkpoints/dreamshaper_8.safetensors','Checkpoints/backup/dreamshaper_8_copy.safetensors']},
+  {hash:'b72e445f…',size:'3.9 GB',files:['Lora/detail_tweaker.safetensors','ComfyUI/models/loras/detail_tweaker.safetensors','Forge/models/Lora/detail_tweaker.safetensors']},
+  {hash:'cc41d29a…',size:'4.0 GB',files:['ControlNet/control_sd15_openpose.safetensors','A1111/extensions/sd-controlnet/models/openpose.safetensors']},
+  {hash:'d9912fe7…',size:'7.2 GB',files:['Checkpoints/realisticVisionV51.safetensors','Checkpoints/old/realisticVision_v51.safetensors']},
+  {hash:'e15a787b…',size:'2.1 GB',files:['VAE/vae-ft-mse-840000.safetensors','A1111/models/VAE/vae-ft-mse.safetensors']},
+  {hash:'f0023ab8…',size:'9.6 GB',files:['SVD/svd_xt.safetensors','ComfyUI/models/checkpoints/svd_xt.safetensors']},
+  {hash:'a1b2c3d4…',size:'1.5 GB',files:['ControlNet/control_v11p_sd15_canny.safetensors','Forge/models/ControlNet/canny.safetensors']},
+];
+
+function scBuildDupes() {
+  const el = document.getElementById('sc-dupe-list'); if(!el) return;
+  el.innerHTML = SC_DUPES.map((d,gi) => `
+    <div class="dupe-group">
+      <div class="dupe-group-head">
+        <span style="font-family:var(--code);font-size:11px;color:var(--amber)">${d.hash}</span>
+        <span class="tag tag-stopped" style="font-size:9px">${d.files.length} Kopien</span>
+        <span style="font-size:10px;color:var(--red);font-family:var(--code)">${d.size}</span>
+        <span style="font-size:9px;color:var(--text-dim);margin-left:4px">×${d.files.length-1} = ${(parseFloat(d.size)*(d.files.length-1)).toFixed(1)} GB</span>
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button class="btn btn-secondary" style="font-size:9px;padding:3px 8px" onclick="scKeepFirst(${gi})">✓ Erste</button>
+          <button class="btn btn-secondary" style="font-size:9px;padding:3px 8px;color:var(--red);border-color:var(--red)" onclick="scDeleteDupe(${gi})">🗑</button>
+        </div>
+      </div>
+      ${d.files.map((f,fi) => `
+        <div class="dupe-file ${fi===0?'master':''}">
+          <input type="checkbox" ${fi===0?'disabled':'checked'} />
+          <span style="flex:1;color:${fi===0?'var(--green)':'var(--text-dim)'}">${fi===0?'[MASTER] ':''}${f}</span>
+          <span style="color:var(--text-dim);font-size:10px">${d.size}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+  scUpdateStats();
+}
+
+function scKeepFirst(gi) { SC_DUPES[gi].files=[SC_DUPES[gi].files[0]]; scBuildDupes(); }
+function scDeleteDupe(gi) { SC_DUPES.splice(gi,1); scBuildDupes(); }
+function scDeleteAllDupes() { SC_DUPES.length=0; scBuildDupes(); }
+function scUpdateStats() {
+  const g=document.getElementById('sc-d-groups'), f=document.getElementById('sc-d-files');
+  if(g) g.textContent=SC_DUPES.length;
+  if(f) f.textContent=SC_DUPES.reduce((s,d)=>s+d.files.length,0);
+}
+function scScanDupes() {
+  const btn = event.currentTarget;
+  btn.textContent='⏳ Hashing…'; btn.disabled=true;
+  setTimeout(()=>{btn.textContent='🔄 Neu scannen';btn.disabled=false;scBuildDupes();},2500);
+}
+</script>
+<!-- Dashboard Switcher -->
+<div id="ds-switcher" style="position:fixed;bottom:20px;right:20px;z-index:9999;font-family:system-ui,sans-serif">
+  <div id="ds-menu" style="display:none;position:absolute;bottom:48px;right:0;background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:6px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+    <a href="index.html" class="ds-link" data-page="index">🌃 Cyberpunk</a>
+    <a href="gradio.html" class="ds-link" data-page="gradio">☀ Gradio Light</a>
+    <a href="control.html" class="ds-link" data-page="control">🖥 Mission Control</a>
+    <a href="manager.html" class="ds-link" data-page="manager">🗂 Model Manager</a>
+    <a href="models.html" class="ds-link" data-page="models">📰 Editorial</a>
+  </div>
+  <button onclick="document.getElementById('ds-menu').style.display=document.getElementById('ds-menu').style.display==='none'?'':'none'" style="width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#1a1a2e;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform=''">🔀</button>
+</div>
+<style>
+.ds-link{display:block;padding:8px 12px;color:#ccc;text-decoration:none;border-radius:5px;font-size:13px;transition:background 0.15s}
+.ds-link:hover{background:#2a2a4e;color:#fff}
+.ds-link.ds-active{background:#333;color:#00ff88;font-weight:600}
+</style>
+<script>(function(){var p=location.pathname.split('/').pop().replace('.html','');document.querySelectorAll('.ds-link').forEach(function(a){if(a.dataset.page===p)a.classList.add('ds-active')});})()</script>
+</body>
+</html>

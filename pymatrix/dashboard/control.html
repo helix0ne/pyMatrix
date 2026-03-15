@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyMatrix — Mission Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ══════════════════════════════════════════════════════
+   PYMATRIX MISSION CONTROL — AMBER CRT THEME
+   Inspired by NASA 1970s mission consoles + modern data
+══════════════════════════════════════════════════════ */
+:root {
+  --bg:        #0b0b09;
+  --bg1:       #111108;
+  --bg2:       #181810;
+  --bg3:       #1e1e14;
+  --amber:     #e8b84b;
+  --amber-2:   #c99230;
+  --amber-3:   #a07828;
+  --amber-dim: #6b5018;
+  --amber-bg:  #1a1500;
+  --amber-bd:  #3a2e08;
+  --green:     #3dd68c;
+  --green-bg:  #041a0d;
+  --red:       #ff5c5c;
+  --red-bg:    #1a0404;
+  --orange:    #ff7a35;
+  --blue:      #4db8ff;
+  --dim:       #3a3820;
+  --text:      #e8b84b;
+  --text-2:    #a07828;
+  --text-3:    #6b5018;
+  --border:    #2a2510;
+  --border-2:  #3a3518;
+  --font:      'Chakra Petch', monospace;
+  --mono:      'Fira Code', 'Courier New', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: 13px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* CRT scanline overlay */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+}
+
+/* Subtle ambient glow on body */
+body::before {
+  content:'';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 10%, rgba(232,184,75,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── STATUS BAR (top strip) ── */
+.statusbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border-2);
+  padding: 0 20px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.8px;
+}
+.statusbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber-2), transparent);
+  opacity: 0.5;
+}
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-right: 1px solid var(--border);
+  height: 100%;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.sb-item:first-child { padding-left: 0; }
+.sb-val { color: var(--amber); font-weight: 500; }
+.sb-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+.sb-dot.warn { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+.sb-dot.off  { background: var(--red); box-shadow: 0 0 4px var(--red); animation: none; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.sb-clock { margin-left: auto; color: var(--amber); font-weight: 600; letter-spacing: 2px; }
+.sb-logo { color: var(--amber); font-weight: 700; font-family: var(--font); letter-spacing: 3px; font-size: 12px; padding-right: 24px; }
+
+/* ── MAIN LAYOUT ── */
+.shell {
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  grid-template-rows: auto 1fr;
+  min-height: calc(100vh - 36px);
+  position: relative;
+  z-index: 1;
+}
+
+/* ── LEFT SIDEBAR (Mission Nav) ── */
+.sidenav {
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  grid-row: 1 / 3;
+}
+.sidenav-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidenav-title {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+.sidenav-logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 2px;
+  margin-top: 6px;
+  text-shadow: 0 0 20px rgba(232,184,75,0.4);
+}
+.sidenav-ver {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+.nav-section-label {
+  padding: 16px 18px 6px;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: var(--text-2);
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.nav-item:hover { background: var(--bg2); color: var(--amber); }
+.nav-item.active {
+  background: var(--amber-bg);
+  color: var(--amber);
+  border-left-color: var(--amber);
+}
+.nav-item .nav-icon { width: 16px; text-align: center; font-size: 14px; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--amber);
+  color: var(--bg);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-family: var(--mono);
+}
+.nav-badge.green { background: var(--green); }
+.nav-badge.red { background: var(--red); }
+
+.sidenav-footer {
+  margin-top: auto;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+}
+.sys-gauge-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-3);
+  margin-bottom: 5px;
+  font-family: var(--mono);
+}
+.sys-mini-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 0;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.sys-mini-fill {
+  height: 100%;
+  background: var(--amber);
+  box-shadow: 0 0 4px var(--amber-2);
+  transition: width 1s ease;
+}
+.sys-mini-fill.hot { background: var(--orange); box-shadow: 0 0 4px var(--orange); }
+
+/* ── CENTER MAIN ── */
+.main-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Page sections */
+.page-mc { display: none; flex-direction: column; height: 100%; }
+.page-mc.active { display: flex; }
+
+/* Toolbar */
+.toolbar {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.toolbar-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+  padding-right: 16px;
+  border-right: 1px solid var(--border);
+  margin-right: 4px;
+}
+.tb-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.15s;
+}
+.tb-btn:hover { border-color: var(--amber-2); color: var(--amber); background: var(--amber-bg); }
+.tb-btn.primary { background: var(--amber); color: var(--bg); border-color: var(--amber); }
+.tb-btn.primary:hover { background: var(--amber-2); }
+.tb-btn.danger { border-color: var(--red); color: var(--red); }
+.tb-btn.danger:hover { background: var(--red-bg); }
+.tb-btn kbd {
+  font-family: var(--mono);
+  font-size: 9px;
+  background: var(--border);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: var(--text-3);
+}
+
+.toolbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* Scroll area */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dim) transparent;
+}
+.scroll-area::-webkit-scrollbar { width: 4px; }
+.scroll-area::-webkit-scrollbar-track { background: transparent; }
+.scroll-area::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 0; }
+
+/* Section header */
+.section-hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.section-label {
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.section-count {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text-3);
+}
+
+/* ── PACKAGE CARDS (instrument panel style) ── */
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pkg-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.pkg-card:hover { border-color: var(--amber-2); transform: translateY(-1px); }
+.pkg-card.running { border-color: var(--green); }
+.pkg-card.running::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: scan-line 3s linear infinite;
+}
+@keyframes scan-line {
+  0%   { opacity: 1; }
+  40%  { opacity: 1; }
+  60%  { opacity: 0.4; }
+  80%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+.pkg-card.offline { opacity: 0.55; }
+.pkg-card.offline:hover { opacity: 0.85; }
+
+.pkg-header {
+  padding: 12px 14px 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.pkg-status-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.pkg-status-indicator.run { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse-dot 1.5s ease-in-out infinite; }
+.pkg-status-indicator.off { background: var(--border-2); }
+.pkg-status-indicator.warn { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+
+.pkg-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.pkg-type {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+.pkg-status-text {
+  margin-left: auto;
+  font-size: 9px;
+  font-family: var(--mono);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.pkg-status-text.run { color: var(--green); }
+.pkg-status-text.off { color: var(--text-3); }
+.pkg-status-text.warn { color: var(--orange); }
+
+.pkg-metrics {
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.pkg-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pkg-metric-label {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+.pkg-metric-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--amber);
+  font-family: var(--mono);
+}
+.pkg-metric-val.dim { color: var(--text-3); font-size: 12px; }
+.pkg-metric-val.green { color: var(--green); }
+
+.pkg-bar-wrap {
+  padding: 8px 14px;
+}
+.pkg-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.pkg-bar {
+  height: 2px;
+  background: var(--border);
+  position: relative;
+}
+.pkg-bar-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: var(--amber);
+  transition: width 1s ease;
+}
+.pkg-bar-fill.green { background: var(--green); box-shadow: 0 0 4px var(--green); }
+
+.pkg-footer {
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pkg-action {
+  flex: 1;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.15s;
+}
+.pkg-action:hover { border-color: var(--amber-2); color: var(--amber); background: var(--amber-bg); }
+.pkg-action.launch { background: var(--amber); color: var(--bg); border-color: var(--amber); font-weight: 600; }
+.pkg-action.launch:hover { background: var(--amber-2); }
+.pkg-action.stop { border-color: var(--red); color: var(--red); }
+.pkg-action.stop:hover { background: var(--red-bg); }
+.pkg-url-btn {
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--border-2);
+  color: var(--blue);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pkg-url-btn:hover { background: rgba(77,184,255,0.08); border-color: var(--blue); }
+
+/* ── STAT CARDS ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, var(--amber-dim), var(--amber-2), var(--amber-dim));
+  opacity: 0.6;
+}
+.stat-label {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-bottom: 8px;
+}
+.stat-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--amber);
+  line-height: 1;
+  text-shadow: 0 0 16px rgba(232,184,75,0.25);
+}
+.stat-val.green { color: var(--green); text-shadow: 0 0 12px rgba(61,214,140,0.2); }
+.stat-val.orange { color: var(--orange); }
+.stat-sub {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  margin-top: 4px;
+}
+
+/* ── RIGHT PANEL (Telemetry) ── */
+.right-panel {
+  background: var(--bg1);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  grid-row: 1 / 3;
+}
+.panel-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-section-title {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-bottom: 12px;
+}
+
+/* Gauge circle */
+.gauge-row { display: flex; gap: 8px; justify-content: space-between; }
+.gauge-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.gauge-circle {
+  width: 72px; height: 72px;
+  position: relative;
+}
+.gauge-circle svg { transform: rotate(-90deg); }
+.gauge-circle-bg { fill: none; stroke: var(--border); stroke-width: 4; }
+.gauge-circle-fg { fill: none; stroke-width: 4; stroke-linecap: butt; transition: stroke-dashoffset 1s ease; }
+.gauge-val {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+.gauge-val-sub { font-size: 8px; color: var(--text-3); margin-top: 2px; }
+.gauge-label { font-size: 8px; letter-spacing: 2px; color: var(--text-3); text-transform: uppercase; font-family: var(--mono); }
+
+/* Telemetry rows */
+.telem-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.telem-item:last-child { border: none; }
+.telem-key {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+.telem-val {
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--amber);
+}
+.telem-val.green { color: var(--green); }
+.telem-val.red { color: var(--red); }
+.telem-val.orange { color: var(--orange); }
+
+/* Mini bar in telemetry */
+.telem-bar {
+  display: flex; align-items: center; gap: 8px;
+}
+.telem-bar-track {
+  width: 60px;
+  height: 2px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.telem-bar-fill {
+  height: 100%;
+  background: var(--amber);
+  transition: width 1s ease;
+}
+.telem-bar-fill.green { background: var(--green); }
+.telem-bar-fill.hot   { background: var(--orange); }
+
+/* Log stream (right panel) */
+.log-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.7;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dim) transparent;
+}
+.log-stream::-webkit-scrollbar { width: 3px; }
+.log-stream::-webkit-scrollbar-thumb { background: var(--dim); }
+
+.log-line { display: flex; gap: 8px; }
+.log-ts { color: var(--text-3); flex-shrink: 0; }
+.log-tag { flex-shrink: 0; }
+.log-tag.info  { color: var(--blue); }
+.log-tag.ok    { color: var(--green); }
+.log-tag.warn  { color: var(--orange); }
+.log-tag.error { color: var(--red); }
+.log-msg { color: var(--text-2); word-break: break-all; }
+.log-msg .highlight { color: var(--amber); }
+
+/* ── MODELS PAGE ── */
+.model-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.model-table thead tr {
+  border-bottom: 1px solid var(--border-2);
+}
+.model-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.model-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+  cursor: pointer;
+}
+.model-table tbody tr:hover { background: var(--bg2); }
+.model-table td { padding: 9px 12px; color: var(--text-2); vertical-align: middle; }
+.model-table td.name { color: var(--amber); font-weight: 500; letter-spacing: 0.5px; }
+.model-table td.size { color: var(--amber); font-weight: 600; }
+.model-table td.type span {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--border-2);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text-3);
+}
+.model-table td.type span.ckpt { border-color: var(--amber-dim); color: var(--amber-3); }
+.model-table td.type span.lora { border-color: #2a3820; color: #5a8040; }
+.model-table td.type span.vae  { border-color: #20283a; color: #4080a0; }
+.model-table td.type span.ctrl { border-color: #3a2820; color: #a06040; }
+
+/* ── SETTINGS (mission config) ── */
+.cfg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.cfg-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.cfg-card-hdr {
+  padding: 10px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-family: var(--mono);
+}
+.cfg-card-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.cfg-field { display: flex; flex-direction: column; gap: 4px; }
+.cfg-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+.cfg-input {
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.cfg-input:focus { border-color: var(--amber-2); }
+.cfg-input::placeholder { color: var(--text-3); }
+
+.cfg-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.cfg-toggle-row:last-child { border: none; }
+.cfg-toggle-info { display: flex; flex-direction: column; gap: 2px; }
+.cfg-toggle-name { font-size: 11px; letter-spacing: 1px; color: var(--text); font-weight: 500; }
+.cfg-toggle-desc { font-size: 9px; color: var(--text-3); font-family: var(--mono); }
+
+/* Square toggle (amber style) */
+.sq-toggle {
+  width: 36px; height: 18px;
+  background: var(--border);
+  border: 1px solid var(--border-2);
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+.sq-toggle.on { background: var(--amber-bg); border-color: var(--amber); }
+.sq-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 12px; height: 12px;
+  background: var(--text-3);
+  transition: all 0.2s;
+}
+.sq-toggle.on::after { left: 20px; background: var(--amber); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.pkg-card { animation: fadeIn 0.3s ease both; }
+.pkg-card:nth-child(1) { animation-delay: 0.05s; }
+.pkg-card:nth-child(2) { animation-delay: 0.10s; }
+.pkg-card:nth-child(3) { animation-delay: 0.15s; }
+.pkg-card:nth-child(4) { animation-delay: 0.20s; }
+.pkg-card:nth-child(5) { animation-delay: 0.25s; }
+.pkg-card:nth-child(6) { animation-delay: 0.30s; }
+
+/* Uptime blink */
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+.blink { animation: blink 1s step-start infinite; }
+
+/* ── SEARCH ── */
+.search-wrap {
+  position: relative;
+  margin-left: auto;
+}
+.search-input {
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 10px 6px 28px;
+  border-radius: 0;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.15s, width 0.2s;
+}
+.search-input:focus { border-color: var(--amber-2); width: 240px; }
+.search-input::placeholder { color: var(--text-3); }
+.search-icon {
+  position: absolute;
+  left: 8px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* ── DOWNLOAD PAGE ── */
+.dl-item {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  padding: 14px;
+  margin-bottom: 8px;
+}
+.dl-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dl-name { font-weight: 600; letter-spacing: 1px; font-size: 12px; }
+.dl-meta { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+.dl-bar-wrap { height: 3px; background: var(--border); margin-bottom: 6px; }
+.dl-bar-fill { height: 100%; background: var(--amber); box-shadow: 0 0 4px var(--amber-2); transition: width 0.4s; }
+.dl-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  letter-spacing: 1px;
+}
+.dl-stats span { color: var(--amber-3); }
+</style>
+</head>
+<body>
+
+<!-- ══ STATUS BAR ══ -->
+<div class="statusbar">
+  <div class="sb-logo">PYMATRIX</div>
+  <div class="sb-item">
+    <div class="sb-dot"></div>
+    <span>SYSTEM</span>
+    <span class="sb-val">NOMINAL</span>
+  </div>
+  <div class="sb-item">
+    <span>GPU</span>
+    <span class="sb-val" id="sb-gpu">87%</span>
+  </div>
+  <div class="sb-item">
+    <span>VRAM</span>
+    <span class="sb-val" id="sb-vram">9.1/10 GB</span>
+  </div>
+  <div class="sb-item">
+    <span>CPU</span>
+    <span class="sb-val" id="sb-cpu">34%</span>
+  </div>
+  <div class="sb-item">
+    <span>TEMP</span>
+    <span class="sb-val" id="sb-temp" style="color:var(--orange)">76°C</span>
+  </div>
+  <div class="sb-item">
+    <span>RUNNING</span>
+    <span class="sb-val" id="sb-running">2</span>
+  </div>
+  <div class="sb-clock" id="sb-clock">--:--:--</div>
+</div>
+
+<!-- ══ MAIN SHELL ══ -->
+<div class="shell">
+
+  <!-- ── LEFT NAV ── -->
+  <nav class="sidenav">
+    <div class="sidenav-header">
+      <div class="sidenav-title">MISSION CONTROL</div>
+      <div class="sidenav-logo">PYMATRIX</div>
+      <div class="sidenav-ver">v2.0.0 — STABLE</div>
+    </div>
+
+    <div class="nav-section-label">SYSTEMS</div>
+    <div class="nav-item active" onclick="mcPage('packages',this)">
+      <span class="nav-icon">▶</span> LAUNCHER
+      <span class="nav-badge green">2</span>
+    </div>
+    <div class="nav-item" onclick="mcPage('models',this)">
+      <span class="nav-icon">◈</span> MODELS
+      <span class="nav-badge">127</span>
+    </div>
+    <div class="nav-item" onclick="mcPage('downloads',this)">
+      <span class="nav-icon">⬇</span> DOWNLOADS
+    </div>
+    <div class="nav-item" onclick="mcPage('sysmon',this)">
+      <span class="nav-icon">◎</span> TELEMETRY
+    </div>
+
+    <div class="nav-section-label">CONFIG</div>
+    <div class="nav-item" onclick="mcPage('settings',this)">
+      <span class="nav-icon">⚙</span> SETTINGS
+    </div>
+    <div class="nav-item" onclick="mcPage('log',this)">
+      <span class="nav-icon">≡</span> MISSION LOG
+    </div>
+
+    <!-- Mini system gauges -->
+    <div class="sidenav-footer">
+      <div class="sys-gauge-label">GPU LOAD</div>
+      <div class="sys-mini-bar"><div class="sys-mini-fill" id="nav-gpu-bar" style="width:87%"></div></div>
+      <div class="sys-gauge-label">VRAM</div>
+      <div class="sys-mini-bar"><div class="sys-mini-fill" id="nav-vram-bar" style="width:91%"></div></div>
+      <div class="sys-gauge-label">CPU</div>
+      <div class="sys-mini-bar"><div class="sys-mini-fill" id="nav-cpu-bar" style="width:34%"></div></div>
+      <div class="sys-gauge-label">RAM</div>
+      <div class="sys-mini-bar"><div class="sys-mini-fill" id="nav-ram-bar" style="width:44%"></div></div>
+    </div>
+  </nav>
+
+  <!-- ── CENTER: PACKAGES ── -->
+  <div class="main-panel">
+
+    <!-- LAUNCHER PAGE -->
+    <div class="page-mc active" id="page-packages">
+      <div class="toolbar">
+        <span class="toolbar-title">LAUNCHER</span>
+        <button class="tb-btn primary" onclick="launchAll()">▶ ALL SYSTEMS START</button>
+        <button class="tb-btn danger" onclick="stopAll()">■ STOP ALL</button>
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" placeholder="FILTER SYSTEMS…" oninput="filterPkgs(this.value)" />
+        </div>
+      </div>
+      <div class="scroll-area" id="launcher-scroll">
+        <!-- Stats -->
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-label">ACTIVE</div>
+            <div class="stat-val green" id="mc-stat-running">2</div>
+            <div class="stat-sub">systems online</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">INSTALLED</div>
+            <div class="stat-val" id="mc-stat-total">6</div>
+            <div class="stat-sub">packages</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">MODELS</div>
+            <div class="stat-val">127</div>
+            <div class="stat-sub">284.6 GB</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">UPTIME</div>
+            <div class="stat-val orange" id="mc-stat-uptime">02:34</div>
+            <div class="stat-sub">hh:mm</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">GPU TEMP</div>
+            <div class="stat-val orange" id="mc-stat-temp">76°C</div>
+            <div class="stat-sub">RTX 4090</div>
+          </div>
+        </div>
+
+        <!-- Running -->
+        <div class="section-hdr">
+          <span class="section-label">ACTIVE SYSTEMS</span>
+          <span class="section-line"></span>
+          <span class="section-count" id="sec-count-run">02</span>
+        </div>
+        <div class="pkg-grid" id="pkg-running-grid"></div>
+
+        <!-- Offline -->
+        <div class="section-hdr">
+          <span class="section-label">STANDBY</span>
+          <span class="section-line"></span>
+          <span class="section-count" id="sec-count-off">04</span>
+        </div>
+        <div class="pkg-grid" id="pkg-offline-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODELS PAGE -->
+    <div class="page-mc" id="page-models">
+      <div class="toolbar">
+        <span class="toolbar-title">MODEL REGISTRY</span>
+        <button class="tb-btn">⬇ IMPORT</button>
+        <button class="tb-btn">🔍 SCAN</button>
+        <div style="display:flex;gap:6px;margin-left:auto">
+          <button class="tb-btn">ALL</button>
+          <button class="tb-btn">CHECKPOINT</button>
+          <button class="tb-btn">LORA</button>
+          <button class="tb-btn">VAE</button>
+        </div>
+      </div>
+      <div class="scroll-area">
+        <table class="model-table">
+          <thead>
+            <tr>
+              <th>DESIGNATION</th>
+              <th>TYPE</th>
+              <th>SIZE</th>
+              <th>FORMAT</th>
+              <th>LOCATION</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="model-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DOWNLOADS PAGE -->
+    <div class="page-mc" id="page-downloads">
+      <div class="toolbar">
+        <span class="toolbar-title">DOWNLOAD QUEUE</span>
+        <button class="tb-btn primary">⬇ NEW DOWNLOAD</button>
+        <button class="tb-btn">■ PAUSE ALL</button>
+        <div style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text-3)">
+          QUEUE: <span style="color:var(--amber)">3 ACTIVE</span> · TOTAL: <span style="color:var(--amber)">12.8 GB REMAINING</span>
+        </div>
+      </div>
+      <div class="scroll-area" id="dl-scroll"></div>
+    </div>
+
+    <!-- TELEMETRY PAGE -->
+    <div class="page-mc" id="page-sysmon">
+      <div class="toolbar">
+        <span class="toolbar-title">SYSTEM TELEMETRY</span>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-3)">
+          REFRESH: <span style="color:var(--amber)">1s</span>
+        </div>
+      </div>
+      <div class="scroll-area">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <!-- GPU CARD -->
+          <div style="background:var(--bg1);border:1px solid var(--border);padding:16px">
+            <div style="font-size:9px;letter-spacing:3px;color:var(--text-3);font-family:var(--mono);margin-bottom:12px">GPU SUBSYSTEM</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+              <div><div style="font-size:8px;letter-spacing:2px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px">LOAD</div><div style="font-size:28px;font-weight:700;color:var(--amber);font-family:var(--mono)" id="sm-gpu">87%</div></div>
+              <div><div style="font-size:8px;letter-spacing:2px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px">VRAM</div><div style="font-size:28px;font-weight:700;color:var(--blue);font-family:var(--mono)" id="sm-vram">9.1</div><div style="font-size:9px;color:var(--text-3);font-family:var(--mono)">/ 10 GB</div></div>
+              <div><div style="font-size:8px;letter-spacing:2px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px">TEMP</div><div style="font-size:28px;font-weight:700;color:var(--orange);font-family:var(--mono)" id="sm-temp">76°C</div></div>
+            </div>
+            <canvas id="sm-gpu-chart" width="0" height="60" style="width:100%;height:60px;display:block"></canvas>
+          </div>
+          <!-- CPU CARD -->
+          <div style="background:var(--bg1);border:1px solid var(--border);padding:16px">
+            <div style="font-size:9px;letter-spacing:3px;color:var(--text-3);font-family:var(--mono);margin-bottom:12px">CPU SUBSYSTEM</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+              <div><div style="font-size:8px;letter-spacing:2px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px">AVG</div><div style="font-size:28px;font-weight:700;color:var(--amber);font-family:var(--mono)" id="sm-cpu">34%</div></div>
+              <div><div style="font-size:8px;letter-spacing:2px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px">RAM</div><div style="font-size:28px;font-weight:700;color:var(--green);font-family:var(--mono)" id="sm-ram">28.4</div><div style="font-size:9px;color:var(--text-3);font-family:var(--mono)">/ 64 GB</div></div>
+              <div><div style="font-size:8px;letter-spacing:2px;color:var(--text-3);font-family:var(--mono);margin-bottom:4px">FREQ</div><div style="font-size:28px;font-weight:700;color:var(--text-2);font-family:var(--mono)" id="sm-freq">4.2</div><div style="font-size:9px;color:var(--text-3);font-family:var(--mono)">GHz</div></div>
+            </div>
+            <div id="sm-cores" style="display:grid;grid-template-columns:repeat(16,1fr);gap:2px;height:44px;align-items:flex-end"></div>
+          </div>
+          <!-- DISK + NETWORK -->
+          <div style="background:var(--bg1);border:1px solid var(--border);padding:16px">
+            <div style="font-size:9px;letter-spacing:3px;color:var(--text-3);font-family:var(--mono);margin-bottom:12px">DISK I/O</div>
+            <div class="telem-item"><span class="telem-key">READ</span><div class="telem-bar"><div class="telem-bar-track"><div class="telem-bar-fill" id="sm-dread-bar" style="width:60%"></div></div><span class="telem-val" id="sm-dread">245 MB/s</span></div></div>
+            <div class="telem-item"><span class="telem-key">WRITE</span><div class="telem-bar"><div class="telem-bar-track"><div class="telem-bar-fill" id="sm-dwrite-bar" style="width:20%"></div></div><span class="telem-val" id="sm-dwrite">87 MB/s</span></div></div>
+          </div>
+          <div style="background:var(--bg1);border:1px solid var(--border);padding:16px">
+            <div style="font-size:9px;letter-spacing:3px;color:var(--text-3);font-family:var(--mono);margin-bottom:12px">NETWORK</div>
+            <div class="telem-item"><span class="telem-key">DOWN</span><div class="telem-bar"><div class="telem-bar-track"><div class="telem-bar-fill green" id="sm-ndown-bar" style="width:43%"></div></div><span class="telem-val green" id="sm-ndown">43.2 MB/s</span></div></div>
+            <div class="telem-item"><span class="telem-key">UP</span><div class="telem-bar"><div class="telem-bar-track"><div class="telem-bar-fill" id="sm-nup-bar" style="width:3%"></div></div><span class="telem-val" id="sm-nup">1.2 MB/s</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page-mc" id="page-settings">
+      <div class="toolbar">
+        <span class="toolbar-title">SYSTEM CONFIGURATION</span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="tb-btn primary">◼ COMMIT CONFIG</button>
+          <button class="tb-btn">↩ RESET</button>
+        </div>
+      </div>
+      <div class="scroll-area">
+        <div class="cfg-grid">
+          <div class="cfg-card">
+            <div class="cfg-card-hdr">PATHS</div>
+            <div class="cfg-card-body">
+              <div class="cfg-field"><label class="cfg-label">SM ROOT DIR</label><input class="cfg-input" value="D:/Programme/stability_matrix" /></div>
+              <div class="cfg-field"><label class="cfg-label">MODEL STORE</label><input class="cfg-input" value="D:/Programme/stability_matrix/Models" /></div>
+              <div class="cfg-field"><label class="cfg-label">PYTHON EXEC</label><input class="cfg-input" value="python" /></div>
+            </div>
+          </div>
+          <div class="cfg-card">
+            <div class="cfg-card-hdr">API CREDENTIALS</div>
+            <div class="cfg-card-body">
+              <div class="cfg-field"><label class="cfg-label">CIVITAI KEY</label><input class="cfg-input" type="password" placeholder="••••••••••••••••" /></div>
+              <div class="cfg-field"><label class="cfg-label">HUGGINGFACE TOKEN</label><input class="cfg-input" type="password" placeholder="hf_••••••••••••" /></div>
+              <div class="cfg-field"><label class="cfg-label">REPLICATE TOKEN</label><input class="cfg-input" type="password" placeholder="r8_••••••••••••" /></div>
+            </div>
+          </div>
+          <div class="cfg-card">
+            <div class="cfg-card-hdr">RUNTIME FLAGS</div>
+            <div class="cfg-card-body">
+              <div class="cfg-toggle-row"><div class="cfg-toggle-info"><div class="cfg-toggle-name">URL DETECTION</div><div class="cfg-toggle-desc">Auto-detect WebUI URLs in log output</div></div><div class="sq-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="cfg-toggle-row"><div class="cfg-toggle-info"><div class="cfg-toggle-name">LOG TIMESTAMPS</div><div class="cfg-toggle-desc">Prepend HH:MM:SS to every log entry</div></div><div class="sq-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="cfg-toggle-row"><div class="cfg-toggle-info"><div class="cfg-toggle-name">AUTO-OPEN BROWSER</div><div class="cfg-toggle-desc">Launch browser when WebUI is ready</div></div><div class="sq-toggle" onclick="this.classList.toggle('on')"></div></div>
+              <div class="cfg-toggle-row"><div class="cfg-toggle-info"><div class="cfg-toggle-name">HASH VERIFICATION</div><div class="cfg-toggle-desc">SHA256 check after each download</div></div><div class="sq-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="cfg-toggle-row"><div class="cfg-toggle-info"><div class="cfg-toggle-name">CRASH RESTART</div><div class="cfg-toggle-desc">Auto-restart crashed packages (3x max)</div></div><div class="sq-toggle" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+          </div>
+          <div class="cfg-card">
+            <div class="cfg-card-hdr">PERFORMANCE</div>
+            <div class="cfg-card-body">
+              <div class="cfg-field">
+                <label class="cfg-label">CONCURRENT DL <span id="cfg-dl-val" style="color:var(--amber)">3</span></label>
+                <input type="range" min="1" max="8" value="3" style="width:100%;accent-color:var(--amber)" oninput="document.getElementById('cfg-dl-val').textContent=this.value" />
+              </div>
+              <div class="cfg-field">
+                <label class="cfg-label">SCANNER THREADS <span id="cfg-thr-val" style="color:var(--amber)">4</span></label>
+                <input type="range" min="1" max="16" value="4" style="width:100%;accent-color:var(--amber)" oninput="document.getElementById('cfg-thr-val').textContent=this.value" />
+              </div>
+              <div class="cfg-field"><label class="cfg-label">CHUNK SIZE</label>
+                <select class="cfg-input"><option>4 MB</option><option selected>8 MB</option><option>16 MB</option><option>32 MB</option></select>
+              </div>
+              <div class="cfg-field"><label class="cfg-label">SYSMON INTERVAL</label>
+                <select class="cfg-input"><option>500 ms</option><option selected>1 s</option><option>2 s</option><option>5 s</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="cfg-card" style="grid-column:1/-1">
+            <div class="cfg-card-hdr">NOTIFICATIONS</div>
+            <div class="cfg-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+              <div class="cfg-toggle-row" style="padding:8px 0"><div class="cfg-toggle-info"><div class="cfg-toggle-name">DOWNLOAD COMPLETE</div><div class="cfg-toggle-desc">System toast when model download finishes</div></div><div class="sq-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="cfg-toggle-row" style="padding:8px 16px"><div class="cfg-toggle-info"><div class="cfg-toggle-name">PACKAGE CRASH</div><div class="cfg-toggle-desc">Alert on unexpected process termination</div></div><div class="sq-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="cfg-toggle-row" style="padding:8px 0"><div class="cfg-toggle-info"><div class="cfg-toggle-name">HIGH GPU TEMP</div><div class="cfg-toggle-desc">Warning when GPU exceeds threshold</div></div><div class="sq-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="cfg-toggle-row" style="padding:8px 16px"><div class="cfg-toggle-info"><div class="cfg-toggle-name">SOUND ALERTS</div><div class="cfg-toggle-desc">Acoustic feedback on critical events</div></div><div class="sq-toggle" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG PAGE -->
+    <div class="page-mc" id="page-log">
+      <div class="toolbar">
+        <span class="toolbar-title">MISSION LOG</span>
+        <select style="background:var(--bg);border:1px solid var(--border-2);color:var(--text-2);font-family:var(--mono);font-size:10px;padding:5px 8px;border-radius:0">
+          <option>ALL SYSTEMS</option><option>AUTOMATIC1111</option><option>COMFYUI</option><option>KOHYA</option>
+        </select>
+        <div style="display:flex;gap:6px">
+          <button class="tb-btn">INFO</button><button class="tb-btn">WARN</button><button class="tb-btn">ERROR</button>
+        </div>
+        <button class="tb-btn" style="margin-left:auto">📋 COPY</button>
+        <button class="tb-btn">💾 EXPORT</button>
+      </div>
+      <div class="scroll-area" style="font-family:var(--mono);font-size:11px;line-height:1.8" id="main-log"></div>
+    </div>
+
+  </div><!-- /main-panel -->
+
+  <!-- ── RIGHT TELEMETRY PANEL ── -->
+  <aside class="right-panel">
+    <div class="panel-section">
+      <div class="panel-section-title">GPU · RTX 4090</div>
+      <div class="gauge-row">
+        <div class="gauge-item">
+          <div class="gauge-circle">
+            <svg viewBox="0 0 72 72" width="72" height="72">
+              <circle class="gauge-circle-bg" cx="36" cy="36" r="30" />
+              <circle class="gauge-circle-fg" id="rg-gpu-circle" cx="36" cy="36" r="30"
+                stroke="var(--amber)" stroke-dasharray="188.5" stroke-dashoffset="24" />
+            </svg>
+            <div class="gauge-val" style="color:var(--amber)">
+              <span id="rg-gpu">87%</span>
+              <span class="gauge-val-sub">LOAD</span>
+            </div>
+          </div>
+          <div class="gauge-label">GPU</div>
+        </div>
+        <div class="gauge-item">
+          <div class="gauge-circle">
+            <svg viewBox="0 0 72 72" width="72" height="72">
+              <circle class="gauge-circle-bg" cx="36" cy="36" r="30" />
+              <circle class="gauge-circle-fg" id="rg-vram-circle" cx="36" cy="36" r="30"
+                stroke="var(--blue)" stroke-dasharray="188.5" stroke-dashoffset="19" />
+            </svg>
+            <div class="gauge-val" style="color:var(--blue)">
+              <span id="rg-vram">9.1</span>
+              <span class="gauge-val-sub">GB</span>
+            </div>
+          </div>
+          <div class="gauge-label">VRAM</div>
+        </div>
+        <div class="gauge-item">
+          <div class="gauge-circle">
+            <svg viewBox="0 0 72 72" width="72" height="72">
+              <circle class="gauge-circle-bg" cx="36" cy="36" r="30" />
+              <circle class="gauge-circle-fg" id="rg-temp-circle" cx="36" cy="36" r="30"
+                stroke="var(--orange)" stroke-dasharray="188.5" stroke-dashoffset="45" />
+            </svg>
+            <div class="gauge-val" style="color:var(--orange)">
+              <span id="rg-temp">76°</span>
+              <span class="gauge-val-sub">TEMP</span>
+            </div>
+          </div>
+          <div class="gauge-label">°C</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">SYSTEM READOUTS</div>
+      <div class="telem-item">
+        <span class="telem-key">CPU</span>
+        <div class="telem-bar">
+          <div class="telem-bar-track"><div class="telem-bar-fill" id="rg-cpu-bar" style="width:34%"></div></div>
+          <span class="telem-val" id="rg-cpu">34%</span>
+        </div>
+      </div>
+      <div class="telem-item">
+        <span class="telem-key">RAM</span>
+        <div class="telem-bar">
+          <div class="telem-bar-track"><div class="telem-bar-fill green" id="rg-ram-bar" style="width:44%"></div></div>
+          <span class="telem-val green" id="rg-ram">28.4 GB</span>
+        </div>
+      </div>
+      <div class="telem-item">
+        <span class="telem-key">DISK R</span>
+        <div class="telem-bar">
+          <div class="telem-bar-track"><div class="telem-bar-fill" id="rg-dr-bar" style="width:48%"></div></div>
+          <span class="telem-val" id="rg-dr">245 MB/s</span>
+        </div>
+      </div>
+      <div class="telem-item">
+        <span class="telem-key">NET ↓</span>
+        <div class="telem-bar">
+          <div class="telem-bar-track"><div class="telem-bar-fill green" id="rg-net-bar" style="width:43%"></div></div>
+          <span class="telem-val green" id="rg-net">43 MB/s</span>
+        </div>
+      </div>
+      <div class="telem-item">
+        <span class="telem-key">WATT</span>
+        <div class="telem-bar">
+          <div class="telem-bar-track"><div class="telem-bar-fill hot" id="rg-watt-bar" style="width:88%"></div></div>
+          <span class="telem-val orange" id="rg-watt">282 W</span>
+        </div>
+      </div>
+      <div class="telem-item">
+        <span class="telem-key">FAN</span>
+        <span class="telem-val" id="rg-fan">68%</span>
+      </div>
+    </div>
+
+    <div class="panel-section" style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0">
+      <div class="panel-section-title">LIVE TELEMETRY</div>
+      <div class="log-stream" id="right-log"></div>
+    </div>
+  </aside>
+
+</div><!-- /shell -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// PYMATRIX MISSION CONTROL — JS
+// ══════════════════════════════════════════════════════
+
+// ── Data ──────────────────────────────────────────────
+const PACKAGES = [
+  { id:'a111',   name:'AUTOMATIC1111', type:'STABLE DIFFUSION WEBUI', port:7860, running:true,  gpu:87, vram:9.1, eta:'02:34:12', pid:'14882', ver:'v1.10.1' },
+  { id:'comfy',  name:'COMFYUI',       type:'NODE GRAPH INTERFACE',   port:8188, running:true,  gpu:0,  vram:0,   eta:'01:18:44', pid:'12340', ver:'0.3.7'   },
+  { id:'kohya',  name:'KOHYA SS',      type:'TRAINING SUITE',         port:7861, running:false, gpu:0,  vram:0,   eta:null,       pid:null,    ver:'b3.0'    },
+  { id:'forge',  name:'FORGE WEBUI',   type:'SD FORGE VARIANT',       port:7862, running:false, gpu:0,  vram:0,   eta:null,       pid:null,    ver:'0.0.17'  },
+  { id:'vladmr', name:'VLADMANDATORY', type:'SD NEXT / VLADMANDATORY',port:7863, running:false, gpu:0,  vram:0,   eta:null,       pid:null,    ver:'v0.10'   },
+  { id:'invokeai',name:'INVOKE AI',    type:'PROFESSIONAL STUDIO',    port:9090, running:false, gpu:0,  vram:0,   eta:null,       pid:null,    ver:'4.2.4'   },
+];
+
+const MODELS = [
+  {name:'dreamshaper_8.safetensors',   type:'ckpt', size:'6.8 GB',  fmt:'safetensors', loc:'StableDiffusion'},
+  {name:'realisticVisionV51.safetensors',type:'ckpt',size:'7.2 GB', fmt:'safetensors', loc:'StableDiffusion'},
+  {name:'sd_xl_base_1.0.safetensors',  type:'ckpt', size:'6.9 GB',  fmt:'safetensors', loc:'StableDiffusion'},
+  {name:'detail_tweaker_xl.safetensors',type:'lora',size:'144 MB',  fmt:'safetensors', loc:'Lora'},
+  {name:'add_detail.safetensors',      type:'lora', size:'134 MB',  fmt:'safetensors', loc:'Lora'},
+  {name:'epi_noiseoffset2.safetensors',type:'lora', size:'17 MB',   fmt:'safetensors', loc:'Lora'},
+  {name:'control_sd15_openpose.safetensors',type:'ctrl',size:'1.5 GB',fmt:'safetensors',loc:'ControlNet'},
+  {name:'control_v11p_sd15_canny.safetensors',type:'ctrl',size:'1.5 GB',fmt:'safetensors',loc:'ControlNet'},
+  {name:'vae-ft-mse-840000-ema.safetensors',type:'vae',size:'335 MB',fmt:'safetensors',loc:'VAE'},
+  {name:'sdxl_vae.safetensors',        type:'vae',  size:'335 MB',  fmt:'safetensors', loc:'VAE'},
+  {name:'4x-UltraSharp.pth',           type:'ckpt', size:'65 MB',   fmt:'pth',         loc:'Upscaler'},
+  {name:'clip_vision_g.safetensors',   type:'ckpt', size:'3.7 GB',  fmt:'safetensors', loc:'CLIP'},
+];
+
+const LOG_TEMPLATES = [
+  ['info',  'Loading config from settings.json'],
+  ['ok',    'WebUI initialized on :PORT'],
+  ['info',  'Model loaded: dreamshaper_8.safetensors (6.8 GB)'],
+  ['warn',  'VRAM usage approaching limit: 9.1 GB / 10 GB'],
+  ['info',  'Generating image — sampler: DPM++ 2M · steps: 28 · cfg: 7'],
+  ['ok',    'Image saved → outputs/2026-03-14_09-42-18.png'],
+  ['info',  'Extensions loaded: 14 active'],
+  ['ok',    'ControlNet preprocessor ready'],
+  ['warn',  'GPU temperature: 76°C — within normal range'],
+  ['info',  'LoRA loaded: detail_tweaker_xl.safetensors'],
+  ['ok',    'Interrupt received — generation stopped cleanly'],
+  ['info',  'Starting next batch — queue depth: 3'],
+];
+
+// ── Utils ──────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const rnd = (b, r) => Math.max(0, Math.min(100, b + (Math.random()-0.5)*r));
+const fmt = n => n < 10 ? '0'+n : String(n);
+
+// ── Clock ──────────────────────────────────────────────
+function tickClock() {
+  const now = new Date();
+  const clk = $('sb-clock');
+  if (clk) clk.textContent = `${fmt(now.getHours())}:${fmt(now.getMinutes())}:${fmt(now.getSeconds())}`;
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+// ── Uptime counter ─────────────────────────────────────
+let uptimeSec = 154 * 60 + 12;
+setInterval(() => {
+  uptimeSec++;
+  const el = $('mc-stat-uptime');
+  if (el) el.textContent = `${fmt(Math.floor(uptimeSec/3600))}:${fmt(Math.floor(uptimeSec/60)%60)}`;
+}, 1000);
+
+// ── Navigation ─────────────────────────────────────────
+function mcPage(id, el) {
+  document.querySelectorAll('.page-mc').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const p = $('page-'+id); if (p) p.classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'sysmon') drawSysmonChart();
+}
+
+// ── Render packages ────────────────────────────────────
+function renderPackages(filter='') {
+  const running = PACKAGES.filter(p => p.running && (!filter || p.name.includes(filter.toUpperCase())));
+  const offline = PACKAGES.filter(p => !p.running && (!filter || p.name.includes(filter.toUpperCase())));
+
+  const rg = $('pkg-running-grid');
+  const og = $('pkg-offline-grid');
+  if (rg) rg.innerHTML = running.map(pkgCard).join('');
+  if (og) og.innerHTML = offline.map(pkgCard).join('');
+
+  const sr = $('sec-count-run'); if (sr) sr.textContent = fmt(running.length);
+  const so = $('sec-count-off'); if (so) so.textContent = fmt(offline.length);
+  const sm = $('mc-stat-running'); if (sm) sm.textContent = running.length;
+}
+
+function pkgCard(p) {
+  const state = p.running ? 'running' : 'offline';
+  const stateText = p.running ? 'ONLINE' : 'OFFLINE';
+  const stateCls = p.running ? 'run' : 'off';
+  return `<div class="pkg-card ${state}">
+    <div class="pkg-header">
+      <div class="pkg-status-indicator ${stateCls}"></div>
+      <div>
+        <div class="pkg-name">${p.name}</div>
+        <div class="pkg-type">${p.type}</div>
+      </div>
+      <div class="pkg-status-text ${stateCls}">${stateText}</div>
+    </div>
+    <div class="pkg-metrics">
+      <div class="pkg-metric">
+        <span class="pkg-metric-label">PORT</span>
+        <span class="pkg-metric-val ${p.running?'':'dim'}">${p.port}</span>
+      </div>
+      <div class="pkg-metric">
+        <span class="pkg-metric-label">GPU</span>
+        <span class="pkg-metric-val ${p.running?'':'dim'}">${p.running ? p.gpu+'%' : '—'}</span>
+      </div>
+      <div class="pkg-metric">
+        <span class="pkg-metric-label">VRAM</span>
+        <span class="pkg-metric-val ${p.running?'':'dim'}">${p.running ? p.vram+' GB' : '—'}</span>
+      </div>
+      <div class="pkg-metric">
+        <span class="pkg-metric-label">PID</span>
+        <span class="pkg-metric-val ${p.running?'':'dim'}">${p.pid || '—'}</span>
+      </div>
+      <div class="pkg-metric">
+        <span class="pkg-metric-label">VER</span>
+        <span class="pkg-metric-val dim" style="font-size:11px">${p.ver}</span>
+      </div>
+      <div class="pkg-metric">
+        <span class="pkg-metric-label">UPTIME</span>
+        <span class="pkg-metric-val ${p.running?'':'dim'}">${p.eta || '—'}</span>
+      </div>
+    </div>
+    ${p.running ? `<div class="pkg-bar-wrap">
+      <div class="pkg-bar-label"><span>GPU LOAD</span><span>${p.gpu}%</span></div>
+      <div class="pkg-bar"><div class="pkg-bar-fill ${p.gpu>80?'':'green'}" id="pkb-${p.id}" style="width:${p.gpu}%"></div></div>
+    </div>` : '<div style="height:22px"></div>'}
+    <div class="pkg-footer">
+      ${p.running
+        ? `<button class="pkg-action stop" onclick="togglePkg('${p.id}')">■ STOP</button>
+           <button class="pkg-url-btn" onclick="window.open('http://localhost:${p.port}')">🌐</button>`
+        : `<button class="pkg-action launch" onclick="togglePkg('${p.id}')">▶ LAUNCH</button>`
+      }
+    </div>
+  </div>`;
+}
+
+function filterPkgs(v) { renderPackages(v); }
+
+function togglePkg(id) {
+  const pkg = PACKAGES.find(p => p.id === id);
+  if (!pkg) return;
+  pkg.running = !pkg.running;
+  if (pkg.running) { pkg.pid = String(10000 + Math.floor(Math.random()*9999)); pkg.gpu = Math.round(rnd(60,30)); pkg.vram = (rnd(5,5)).toFixed(1); pkg.eta = '00:00:01'; }
+  else { pkg.pid = null; pkg.gpu = 0; pkg.vram = 0; pkg.eta = null; }
+  renderPackages();
+  updateRunningBadge();
+  addLog('right-log', pkg.running ? 'ok' : 'warn', `${pkg.name}: ${pkg.running ? 'SYSTEM ONLINE — port '+pkg.port : 'SYSTEM OFFLINE'}`);
+}
+
+function launchAll() { PACKAGES.forEach(p => { if (!p.running) { p.running=true; p.pid=String(10000+Math.floor(Math.random()*9999)); p.gpu=Math.round(rnd(60,25)); p.vram=(rnd(4,4)).toFixed(1); p.eta='00:00:01'; } }); renderPackages(); updateRunningBadge(); }
+function stopAll()   { PACKAGES.forEach(p => { p.running=false; p.pid=null; p.gpu=0; p.vram=0; p.eta=null; }); renderPackages(); updateRunningBadge(); }
+
+function updateRunningBadge() {
+  const n = PACKAGES.filter(p=>p.running).length;
+  const badge = document.querySelector('.nav-item:nth-child(2) .nav-badge');
+  if (badge) { badge.textContent = n; badge.className = 'nav-badge '+(n>0?'green':''); }
+  const sb = $('sb-running'); if (sb) sb.textContent = n;
+  const sm = $('mc-stat-running'); if (sm) sm.textContent = n;
+}
+
+// ── Models ─────────────────────────────────────────────
+function renderModels() {
+  const tbody = $('model-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = MODELS.map(m => `
+    <tr>
+      <td class="name">${m.name}</td>
+      <td class="type"><span class="${m.type}">${m.type.toUpperCase()}</span></td>
+      <td class="size">${m.size}</td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${m.fmt}</td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${m.loc}/</td>
+      <td><span class="telem-val green" style="font-size:10px">● OK</span></td>
+    </tr>
+  `).join('');
+}
+
+// ── Downloads ──────────────────────────────────────────
+const DL_ITEMS = [
+  { name:'realisticVisionV60B1_v51HyperVAE.safetensors', size:'7.2 GB', pct:67, speed:'8.4 MB/s', eta:'8m 32s', src:'CivitAI' },
+  { name:'ip-adapter_sd15_light.bin',                    size:'290 MB', pct:23, speed:'12.1 MB/s', eta:'1m 44s', src:'HuggingFace' },
+  { name:'control_v11f1e_sd15_tile.safetensors',         size:'1.5 GB', pct:91, speed:'15.3 MB/s', eta:'16s',    src:'HuggingFace' },
+];
+function renderDownloads() {
+  const el = $('dl-scroll');
+  if (!el) return;
+  el.innerHTML = DL_ITEMS.map((d,i) => `
+    <div class="dl-item">
+      <div class="dl-item-head">
+        <div>
+          <div class="dl-name">${d.name}</div>
+          <div class="dl-meta">${d.src} · ${d.size}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--amber);font-weight:600">${d.pct}%</span>
+          <button class="tb-btn" style="padding:4px 8px;font-size:10px">■</button>
+        </div>
+      </div>
+      <div class="dl-bar-wrap"><div class="dl-bar-fill" id="dlbar-${i}" style="width:${d.pct}%"></div></div>
+      <div class="dl-stats">SPEED: <span>${d.speed}</span> ETA: <span>${d.eta}</span> DOWNLOADED: <span>${(parseFloat(d.size)*d.pct/100).toFixed(2)} GB</span></div>
+    </div>
+  `).join('');
+}
+
+// Animate downloads
+setInterval(() => {
+  DL_ITEMS.forEach((d,i) => {
+    d.pct = Math.min(100, d.pct + Math.random()*1.2);
+    const bar = $(`dlbar-${i}`); if (bar) bar.style.width = d.pct+'%';
+  });
+}, 500);
+
+// ── Log helpers ─────────────────────────────────────────
+const LOG_COLORS = { info:'var(--blue)', ok:'var(--green)', warn:'var(--orange)', error:'var(--red)' };
+const LOG_SYMBOLS = { info:'ℹ', ok:'✓', warn:'⚠', error:'✕' };
+function addLog(targetId, type, msg) {
+  const el = $(targetId);
+  if (!el) return;
+  const now = new Date();
+  const ts = `${fmt(now.getHours())}:${fmt(now.getMinutes())}:${fmt(now.getSeconds())}`;
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-ts">${ts}</span><span class="log-tag ${type}" style="color:${LOG_COLORS[type]}">[${LOG_SYMBOLS[type]}]</span><span class="log-msg">${msg}</span>`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  // Cap log at 200 lines
+  while (el.children.length > 200) el.removeChild(el.firstChild);
+}
+
+function spawnLog() {
+  const tpl = LOG_TEMPLATES[Math.floor(Math.random()*LOG_TEMPLATES.length)];
+  const [type, msg] = tpl;
+  const pkg = PACKAGES.filter(p=>p.running)[Math.floor(Math.random()*Math.max(1,PACKAGES.filter(p=>p.running).length))];
+  const text = pkg ? msg.replace(':PORT', ':'+pkg.port) : msg;
+  addLog('right-log', type, text);
+  if (Math.random() > 0.7) addLog('main-log', type, (pkg?`[${pkg.name}] `:'') + text);
+}
+setInterval(spawnLog, 1800);
+
+// ── Telemetry update ─────────────────────────────────────
+const histGPU = Array(60).fill(87);
+let gpuBase = 87, vramBase = 9.1, cpuBase = 34;
+
+function updateTelemetry() {
+  const gpu   = Math.round(rnd(gpuBase, 12));
+  const vram  = Math.min(10, Math.max(0, vramBase + (Math.random()-0.48)*0.4));
+  const temp  = Math.round(rnd(76, 8));
+  const watt  = Math.round(rnd(285, 30));
+  const cpu   = Math.round(rnd(cpuBase, 20));
+  const ram   = (rnd(28.4, 3)).toFixed(1);
+  const fan   = Math.round(rnd(68, 15));
+  const dr    = Math.round(rnd(245, 180));
+  const net   = (rnd(43, 35)).toFixed(0);
+
+  // Statusbar
+  const set = (id, v) => { const e=$(id); if(e)e.textContent=v; };
+  set('sb-gpu',  gpu+'%');
+  set('sb-vram', vram.toFixed(1)+'/10 GB');
+  set('sb-cpu',  cpu+'%');
+  set('sb-temp', temp+'°C');
+
+  // Right panel gauges
+  const setGauge = (id, cid, pct, val) => {
+    set(id, val);
+    const c = $(cid); if(c) { const offset = 188.5 * (1-pct/100); c.style.strokeDashoffset = offset; }
+  };
+  setGauge('rg-gpu', 'rg-gpu-circle', gpu,          gpu+'%');
+  setGauge('rg-vram','rg-vram-circle', vram/10*100,  vram.toFixed(1));
+  setGauge('rg-temp','rg-temp-circle', temp/100*100, temp+'°');
+
+  // Right telem bars
+  const setBar = (vid, bid, pct, val, sfx='') => {
+    set(vid, val+sfx);
+    const b = $(bid); if(b) b.style.width = pct+'%';
+  };
+  setBar('rg-cpu',  'rg-cpu-bar',  cpu,         cpu,           '%');
+  setBar('rg-ram',  'rg-ram-bar',  ram/64*100,  ram,           ' GB');
+  setBar('rg-dr',   'rg-dr-bar',   dr/500*100,  dr,            ' MB/s');
+  setBar('rg-net',  'rg-net-bar',  net/100*100, net,           ' MB/s');
+  setBar('rg-watt', 'rg-watt-bar', watt/320*100,watt,          ' W');
+  set('rg-fan', fan+'%');
+
+  // Nav mini bars
+  const setNB = (id, w) => { const e=$(id); if(e) e.style.width=w+'%'; };
+  setNB('nav-gpu-bar',  gpu);
+  setNB('nav-vram-bar', vram/10*100);
+  setNB('nav-cpu-bar',  cpu);
+  setNB('nav-ram-bar',  parseFloat(ram)/64*100);
+
+  // Sysmon page
+  set('sm-gpu',  gpu+'%');
+  set('sm-vram', vram.toFixed(1));
+  set('sm-temp', temp+'°C');
+  set('sm-cpu',  cpu+'%');
+  set('sm-ram',  ram);
+  set('sm-freq', (rnd(42, 8)/10).toFixed(1));
+  setBar('sm-dread', 'sm-dread-bar',  dr/500*100, dr, ' MB/s');
+  setBar('sm-dwrite','sm-dwrite-bar', Math.round(rnd(87,80))/500*100, Math.round(rnd(87,80)), ' MB/s');
+  setBar('sm-ndown', 'sm-ndown-bar',  net/100*100, net, ' MB/s');
+  setBar('sm-nup',   'sm-nup-bar',    (rnd(1.2,2))/100*100, (rnd(1.2,2)).toFixed(1), ' MB/s');
+
+  // Stat cards
+  set('mc-stat-temp', temp+'°C');
+
+  // CPU cores
+  renderSysmonCores(cpu);
+
+  // Live package GPU bars
+  PACKAGES.filter(p=>p.running).forEach(pkg => {
+    pkg.gpu = Math.round(rnd(pkg.gpu, 10));
+    const bar = $(`pkb-${pkg.id}`); if(bar) bar.style.width = pkg.gpu+'%';
+  });
+
+  // Chart
+  histGPU.push(gpu); histGPU.shift();
+  drawSysmonChart();
+}
+setInterval(updateTelemetry, 1000);
+
+function renderSysmonCores(avg) {
+  const el = $('sm-cores'); if (!el) return;
+  el.innerHTML = Array.from({length:16}, () => {
+    const v = Math.round(rnd(avg, 30));
+    const col = v>80 ? 'var(--red)' : v>55 ? 'var(--orange)' : 'var(--amber)';
+    return `<div style="background:${col};height:${v}%;box-shadow:0 0 2px ${col};transition:height 0.4s"></div>`;
+  }).join('');
+}
+
+function drawSysmonChart() {
+  const c = $('sm-gpu-chart'); if (!c) return;
+  c.width = c.offsetWidth;
+  const W = c.width, H = c.height;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(232,184,75,0.08)'; ctx.lineWidth = 1;
+  [25, 50, 75].forEach(p => {
+    const y = H - (p/100)*H;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  });
+
+  // GPU fill
+  ctx.beginPath();
+  const gradient = ctx.createLinearGradient(0, 0, 0, H);
+  gradient.addColorStop(0, 'rgba(232,184,75,0.3)');
+  gradient.addColorStop(1, 'rgba(232,184,75,0)');
+  histGPU.forEach((v,i) => {
+    const x=(i/(histGPU.length-1))*W, y=H-(v/100)*H;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+  ctx.fillStyle = gradient; ctx.fill();
+
+  // GPU line
+  ctx.beginPath(); ctx.strokeStyle = 'var(--amber)'; ctx.lineWidth = 1.5;
+  histGPU.forEach((v,i) => {
+    const x=(i/(histGPU.length-1))*W, y=H-(v/100)*H;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+
+// ── Init ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderPackages();
+  renderModels();
+  renderDownloads();
+  renderSysmonCores(34);
+  drawSysmonChart();
+
+  // Seed initial logs
+  for (let i = 0; i < 12; i++) {
+    setTimeout(() => spawnLog(), i * 200);
+  }
+});
+</script>
+<!-- Dashboard Switcher -->
+<div id="ds-switcher" style="position:fixed;bottom:20px;right:20px;z-index:9999;font-family:system-ui,sans-serif">
+  <div id="ds-menu" style="display:none;position:absolute;bottom:48px;right:0;background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:6px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+    <a href="index.html" class="ds-link" data-page="index">🌃 Cyberpunk</a>
+    <a href="gradio.html" class="ds-link" data-page="gradio">☀ Gradio Light</a>
+    <a href="control.html" class="ds-link" data-page="control">🖥 Mission Control</a>
+    <a href="manager.html" class="ds-link" data-page="manager">🗂 Model Manager</a>
+    <a href="models.html" class="ds-link" data-page="models">📰 Editorial</a>
+  </div>
+  <button onclick="document.getElementById('ds-menu').style.display=document.getElementById('ds-menu').style.display==='none'?'':'none'" style="width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#1a1a2e;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform=''">🔀</button>
+</div>
+<style>
+.ds-link{display:block;padding:8px 12px;color:#ccc;text-decoration:none;border-radius:5px;font-size:13px;transition:background 0.15s}
+.ds-link:hover{background:#2a2a4e;color:#fff}
+.ds-link.ds-active{background:#333;color:#00ff88;font-weight:600}
+</style>
+<script>(function(){var p=location.pathname.split('/').pop().replace('.html','');document.querySelectorAll('.ds-link').forEach(function(a){if(a.dataset.page===p)a.classList.add('ds-active')});})()</script>
+</body>
+</html>

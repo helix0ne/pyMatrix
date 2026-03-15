@@ -1,0 +1,49 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+venv/
+.venv/
+env/
+
+# ── IDE ──
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Secrets ──
+.env
+.env.local
+.env.production
+credentials.json
+secrets.json
+model_manager/config/settings.json
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Session / Working files ──
+SESSION.md
+planning/
+screenshots/
+
+# ── AI Universe Map output ──
+ai_universe_map/output/
+
+# ── Claude ──
+.claude/
+
+# ── Logs ──
+*.log
+StabilityMatrix-win-x64/
+codebase_analysis.md

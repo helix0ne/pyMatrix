@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyMatrix — Ultimate Model Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ══════════════════════════════════════════════════
+   PYMATRIX — ULTIMATE MODEL MANAGER
+   Neo-brutalist dark · IBM Plex · #0d1117 / #00ff88
+══════════════════════════════════════════════════ */
+:root {
+  --bg:      #0d1117;
+  --bg1:     #161b22;
+  --bg2:     #21262d;
+  --bg3:     #30363d;
+  --green:   #00ff88;
+  --green-2: #00cc6a;
+  --green-bg:#001a0d;
+  --green-bd:#003d1a;
+  --blue:    #58a6ff;
+  --blue-bg: #051528;
+  --orange:  #f0883e;
+  --orange-bg:#1c0e00;
+  --red:     #ff6b6b;
+  --red-bg:  #1c0000;
+  --yellow:  #e3b341;
+  --purple:  #bc8cff;
+  --text:    #e6edf3;
+  --text-2:  #8b949e;
+  --text-3:  #484f58;
+  --border:  #30363d;
+  --border-2:#21262d;
+  --font:    'IBM Plex Sans Condensed', sans-serif;
+  --mono:    'IBM Plex Mono', monospace;
+  --radius:  4px;
+  --shadow:  0 1px 3px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 24px;
+  border-right: 1px solid var(--border);
+  padding-right: 24px;
+}
+.logo-mark {
+  width: 30px; height: 30px;
+  background: var(--green);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: #000;
+  font-family: var(--mono);
+}
+.logo-text { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub  { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+
+.nav-tabs {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  flex: 1;
+}
+.ntab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  position: relative;
+}
+.ntab:hover { color: var(--text); background: var(--bg2); }
+.ntab.active { color: var(--green); border-bottom-color: var(--green); }
+.ntab .badge {
+  background: var(--bg3);
+  color: var(--text-3);
+  font-size: 9px;
+  font-family: var(--mono);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+.ntab.active .badge { background: var(--green-bg); color: var(--green); }
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-2);
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: glow 2s ease-in-out infinite;
+}
+@keyframes glow { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── PAGE CONTAINER ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--border-2); color: var(--text); background: var(--bg3); }
+.btn-green { background: var(--green); color: #000; border-color: var(--green); font-weight: 600; }
+.btn-green:hover { background: var(--green-2); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-3); }
+.btn-ghost:hover { color: var(--text); background: var(--bg2); border-color: var(--border); }
+.btn-danger { border-color: var(--red); color: var(--red); background: transparent; }
+.btn-danger:hover { background: var(--red-bg); }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-family: var(--mono); font-weight: 500; }
+.badge-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+.badge-blue   { background: var(--blue-bg);  color: var(--blue);  border: 1px solid #0c2340; }
+.badge-orange { background: var(--orange-bg);color: var(--orange);border: 1px solid #3d2000; }
+.badge-red    { background: var(--red-bg);   color: var(--red);   border: 1px solid #3d0000; }
+.badge-gray   { background: var(--bg2);      color: var(--text-3);border: 1px solid var(--border); }
+.badge-purple { background: #1a0d2e;         color: var(--purple);border: 1px solid #3d2a5a; }
+.badge-yellow { background: #1c1400;         color: var(--yellow);border: 1px solid #3d2e00; }
+
+/* ── CARD ── */
+.card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.card-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg2);
+}
+.card-title { font-weight: 600; font-size: 13px; }
+.card-body { padding: 14px 16px; }
+
+/* ── INPUT ── */
+.input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.input:focus { border-color: var(--green); }
+.input::placeholder { color: var(--text-3); }
+
+/* ── LAYOUT UTILS ── */
+.row { display: flex; gap: 12px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.ml-auto { margin-left: auto; }
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ── PAGE TOOLBAR ── */
+.toolbar {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toolbar-title {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  letter-spacing: 0.5px;
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+  margin-right: 4px;
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE 1: SYMLINK MATRIX
+═══════════════════════════════════════════════ */
+.matrix-wrap {
+  overflow-x: auto;
+  padding: 20px;
+}
+.matrix-table {
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: var(--mono);
+  min-width: 900px;
+}
+.matrix-table th {
+  background: var(--bg2);
+  color: var(--text-2);
+  font-weight: 500;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+/* Sticky first column */
+.matrix-table th:first-child,
+.matrix-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: var(--bg1);
+  border-right: 2px solid var(--border);
+}
+.matrix-table thead th:first-child { background: var(--bg2); }
+/* Row header */
+.matrix-table th.row-hdr {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+/* Column header (WebUI names) */
+.matrix-table .col-hdr {
+  padding: 8px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  min-width: 90px;
+  vertical-align: bottom;
+}
+.col-hdr-name {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+.col-hdr-pkg {
+  font-size: 9px;
+  color: var(--text-3);
+  margin-top: 4px;
+  display: block;
+  text-align: center;
+}
+/* Body rows */
+.matrix-table td {
+  border-bottom: 1px solid var(--border-2);
+  border-right: 1px solid var(--border-2);
+  padding: 0;
+  vertical-align: middle;
+}
+.td-type-name {
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.td-type-label { color: var(--text); font-weight: 500; font-size: 11px; }
+.td-type-folder { color: var(--text-3); font-size: 9px; }
+.td-cell {
+  width: 90px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: default;
+  transition: background 0.15s;
+}
+.td-cell:hover { background: var(--bg3); }
+.td-cell.linked {
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: 14px;
+}
+.td-cell.partial {
+  background: #1a1200;
+  color: var(--yellow);
+  font-size: 11px;
+}
+.td-cell.none { color: var(--text-3); font-size: 10px; }
+.td-cell.combined {
+  background: rgba(88,166,255,0.06);
+  color: var(--blue);
+  font-size: 9px;
+  text-align: center;
+  line-height: 1.3;
+  padding: 2px;
+}
+
+.matrix-legend {
+  padding: 12px 20px;
+  display: flex;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-2); }
+
+/* Profile enable toggle row */
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.profile-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.profile-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--mono);
+}
+.profile-pill:hover { border-color: var(--green-bd); }
+.profile-pill.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+.profile-pill .ppill-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--bg3);
+}
+.profile-pill.active .ppill-dot { background: var(--green); box-shadow: 0 0 4px var(--green); }
+
+/* ═══════════════════════════════════════════════
+   PAGE 2: PROFILE DETAIL
+═══════════════════════════════════════════════ */
+.profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+  padding: 20px;
+}
+.profile-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.profile-card:hover { border-color: var(--border); }
+.profile-card.enabled { border-color: var(--green-bd); }
+.profile-card-head {
+  padding: 12px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-icon {
+  width: 28px; height: 28px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.profile-card-title { font-weight: 700; font-size: 13px; flex: 1; }
+.profile-card-desc { font-size: 10px; color: var(--text-2); font-family: var(--mono); margin-top: 1px; }
+.profile-rules {
+  padding: 8px 14px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-2);
+  font-size: 10px;
+  font-family: var(--mono);
+}
+.rule-item:last-child { border: none; }
+.rule-src { color: var(--blue); min-width: 100px; flex-shrink: 0; }
+.rule-arrow { color: var(--text-3); }
+.rule-target { color: var(--green); word-break: break-all; }
+.profile-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Toggle switch */
+.tog {
+  width: 32px; height: 17px;
+  background: var(--bg3);
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.tog.on { background: var(--green); }
+.tog::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 13px; height: 13px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.tog.on::after { transform: translateX(15px); }
+
+/* ═══════════════════════════════════════════════
+   PAGE 3: MASTER TYPES
+═══════════════════════════════════════════════ */
+.types-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.types-table th {
+  padding: 8px 14px;
+  text-align: left;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.types-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-2);
+  vertical-align: middle;
+}
+.types-table tr:hover td { background: var(--bg2); }
+.type-key { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--blue); }
+.type-folder { font-family: var(--mono); font-size: 11px; color: var(--text-2); }
+.type-desc { font-size: 11px; color: var(--text-3); }
+.type-coverage {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.cov-dot {
+  width: 7px; height: 7px;
+  border-radius: 1px;
+  background: var(--green);
+  title: '';
+}
+.cov-dot.off { background: var(--bg3); }
+
+/* ═══════════════════════════════════════════════
+   PAGE 4: SCANNER + DEDUP
+═══════════════════════════════════════════════ */
+.scan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.scan-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-2);
+}
+.scan-bar-row:last-child { border: none; }
+.scan-bar-name {
+  min-width: 140px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+}
+.scan-bar-track {
+  flex: 1;
+  height: 5px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.scan-bar-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+.scan-bar-val {
+  min-width: 60px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-2);
+}
+.scan-bar-count {
+  min-width: 40px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* Dupe groups */
+.dupe-group {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.dupe-group-head {
+  padding: 10px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dupe-hash { font-family: var(--mono); font-size: 11px; color: var(--yellow); }
+.dupe-file-row {
+  display: flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border-2);
+  gap: 8px;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.dupe-file-row:last-child { border: none; }
+.dupe-file-row.master { background: var(--green-bg); }
+.dupe-file-path { color: var(--text-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dupe-file-row.master .dupe-file-path { color: var(--green); }
+.dupe-file-size { color: var(--text-3); min-width: 55px; text-align: right; }
+
+/* ═══════════════════════════════════════════════
+   PAGE 5: AI UNIVERSE MAP
+═══════════════════════════════════════════════ */
+.map-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: calc(100vh - 52px - 45px);
+}
+.map-sidebar {
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.map-sidebar-scroll { overflow-y: auto; flex: 1; }
+.map-canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--border-2) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+#ai-map-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.map-node-type {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-2);
+  transition: background 0.12s;
+}
+.map-node-type:hover { background: var(--bg2); }
+.map-node-type.active { background: var(--bg3); }
+.map-nt-label { display: flex; align-items: center; gap: 7px; font-weight: 500; }
+.map-nt-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.map-nt-count { font-size: 10px; font-family: var(--mono); color: var(--text-3); }
+.map-node-info {
+  padding: 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+}
+.map-info-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.map-info-type { font-size: 10px; font-family: var(--mono); margin-bottom: 8px; }
+.map-info-desc { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+.map-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+.map-ctrl-btn {
+  width: 32px; height: 32px;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-2);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.map-ctrl-btn:hover { background: var(--bg2); color: var(--text); }
+
+/* Search in map sidebar */
+.map-search { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+
+/* ── STATS STRIP ── */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.stat-block {
+  padding: 14px 16px;
+  border-right: 1px solid var(--border);
+}
+.stat-block:last-child { border: none; }
+.stat-lbl { font-size: 9px; font-family: var(--mono); color: var(--text-3); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; }
+.stat-num { font-size: 22px; font-weight: 700; line-height: 1; }
+.stat-sub { font-size: 10px; color: var(--text-2); margin-top: 3px; font-family: var(--mono); }
+
+/* Progress bar (global apply) */
+.apply-progress {
+  display: none;
+  padding: 8px 20px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: 12px;
+}
+.apply-progress.visible { display: flex; }
+.prog-track { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--green); box-shadow: 0 0 6px var(--green); border-radius: 2px; transition: width 0.3s; }
+.prog-text { font-size: 11px; font-family: var(--mono); color: var(--text-2); min-width: 120px; }
+.prog-pct { font-size: 11px; font-family: var(--mono); color: var(--green); font-weight: 600; min-width: 35px; text-align: right; }
+
+/* Scroll areas */
+.scroll { overflow-y: auto; }
+.pad { padding: 20px; }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">MM</div>
+    <div>
+      <div class="logo-text">Model Manager</div>
+      <div class="logo-sub">v2.0 — PyMatrix</div>
+    </div>
+  </div>
+  <nav class="nav-tabs">
+    <div class="ntab active" onclick="mmNav('matrix',this)">⊞ Symlink-Matrix <span class="badge" id="nb-matrix">12 × 32</span></div>
+    <div class="ntab" onclick="mmNav('profiles',this)">◈ WebUI-Profile <span class="badge">12</span></div>
+    <div class="ntab" onclick="mmNav('types',this)">📁 Master-Typen <span class="badge">32</span></div>
+    <div class="ntab" onclick="mmNav('scanner',this)">🔍 Scanner</div>
+    <div class="ntab" onclick="mmNav('dupes',this)">♊ Duplikate <span class="badge badge-orange" id="nb-dupes">7</span></div>
+    <div class="ntab" onclick="mmNav('aimap',this)">🌐 AI Universe Map <span class="badge">893</span></div>
+  </nav>
+  <div class="header-right">
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      <span id="hdr-sm-root">D:\...\models</span>
+    </div>
+    <button class="btn btn-green" onclick="applyAll()">⚡ Alle Symlinks anwenden</button>
+  </div>
+</header>
+
+<!-- ══ GLOBAL PROGRESS ══ -->
+<div class="apply-progress" id="global-progress">
+  <span class="prog-text" id="prog-status">Verarbeite A1111…</span>
+  <div class="prog-track"><div class="prog-fill" id="prog-bar" style="width:0%"></div></div>
+  <span class="prog-pct" id="prog-pct">0%</span>
+  <button class="btn btn-ghost" onclick="document.getElementById('global-progress').classList.remove('visible')">✕</button>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE 1: SYMLINK MATRIX
+══════════════════════════════════════════════ -->
+<div class="page active" id="page-matrix">
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stat-block">
+      <div class="stat-lbl">Symlinks gesamt</div>
+      <div class="stat-num" style="color:var(--green)" id="st-total">0</div>
+      <div class="stat-sub">über alle Profile</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Aktive Profile</div>
+      <div class="stat-num" id="st-profiles">12</div>
+      <div class="stat-sub">von 12 aktiviert</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Master-Typen</div>
+      <div class="stat-num">32</div>
+      <div class="stat-sub">SharedFolderTypes</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Model-Store</div>
+      <div class="stat-num">284</div>
+      <div class="stat-sub">GB · 127 Modelle</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Fehlende Links</div>
+      <div class="stat-num" style="color:var(--orange)" id="st-missing">0</div>
+      <div class="stat-sub">nicht angewendet</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">SM-Root</div>
+      <div class="stat-num" style="font-size:12px;font-family:var(--mono);color:var(--text-2)">stability_matrix</div>
+      <div class="stat-sub">D:/Programme/…</div>
+    </div>
+  </div>
+
+  <!-- Profile filter pills -->
+  <div class="profile-header-row">
+    <div class="profile-pills" id="profile-pills-filter">
+      <!-- Injected -->
+    </div>
+    <div class="row" style="gap:8px;flex-shrink:0">
+      <button class="btn" onclick="toggleAllProfiles(true)">Alle an</button>
+      <button class="btn" onclick="toggleAllProfiles(false)">Alle aus</button>
+      <button class="btn btn-green" onclick="applyAll()">⚡ Apply</button>
+    </div>
+  </div>
+
+  <!-- Matrix table -->
+  <div class="matrix-wrap" id="matrix-scroll">
+    <table class="matrix-table" id="matrix-table">
+      <!-- Injected by JS -->
+    </table>
+  </div>
+
+  <!-- Legend -->
+  <div class="matrix-legend">
+    <div class="legend-item"><span style="font-size:14px;color:var(--green)">✓</span> Verlinkt</div>
+    <div class="legend-item"><span style="background:rgba(88,166,255,0.2);padding:1px 5px;font-size:10px;color:var(--blue)">MERGE</span> Mehrere Typen → ein Ziel</div>
+    <div class="legend-item"><span style="color:var(--yellow)">~</span> Geerbt (inherits)</div>
+    <div class="legend-item"><span style="color:var(--text-3)">·</span> Nicht verknüpft</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE 2: PROFILES
+══════════════════════════════════════════════ -->
+<div class="page" id="page-profiles">
+  <div class="toolbar">
+    <span class="toolbar-title">WEBUI-PROFILE</span>
+    <button class="btn" onclick="expandAllProfiles()">Alle aufklappen</button>
+    <div class="ml-auto row" style="gap:8px">
+      <button class="btn btn-green" onclick="applyAll()">⚡ Alle Profile anwenden</button>
+      <button class="btn">➕ Neues Profil</button>
+    </div>
+  </div>
+  <div class="profiles-grid" id="profiles-grid">
+    <!-- Injected -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE 3: MASTER TYPES
+══════════════════════════════════════════════ -->
+<div class="page" id="page-types">
+  <div class="toolbar">
+    <span class="toolbar-title">MASTER-TYPEN</span>
+    <input class="input" style="max-width:200px" placeholder="Filter…" oninput="filterTypes(this.value)" />
+    <span style="font-size:11px;font-family:var(--mono);color:var(--text-3);margin-left:4px" id="types-count">32 Typen</span>
+    <div class="ml-auto row" style="gap:8px">
+      <span style="font-size:11px;font-family:var(--mono);color:var(--text-2)">Spalten: WebUI-Abdeckung</span>
+    </div>
+  </div>
+  <div class="scroll" style="height:calc(100vh - 52px - 45px)">
+    <table class="types-table" id="types-table">
+      <thead>
+        <tr>
+          <th style="width:140px">Type-Key</th>
+          <th style="width:140px">Ordner</th>
+          <th>Beschreibung</th>
+          <th style="width:200px">Profile-Abdeckung</th>
+          <th style="width:80px">Dateien</th>
+          <th style="width:80px">Größe</th>
+        </tr>
+      </thead>
+      <tbody id="types-tbody"><!-- injected --></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE 4: SCANNER
+══════════════════════════════════════════════ -->
+<div class="page" id="page-scanner">
+  <div class="toolbar">
+    <span class="toolbar-title">MODEL SCANNER</span>
+    <button class="btn btn-green" onclick="runScan()">🔍 Scan starten</button>
+    <button class="btn">📂 Ordner öffnen</button>
+    <div class="ml-auto row" style="gap:6px">
+      <span style="font-size:11px;font-family:var(--mono);color:var(--text-3)">Letzter Scan: 14. März 2026, 09:42</span>
+    </div>
+  </div>
+  <div class="pad scroll" style="height:calc(100vh - 52px - 45px)">
+    <div class="scan-grid" id="scan-content">
+      <div class="card">
+        <div class="card-head"><span>📊</span><span class="card-title">Speicher nach Typ</span></div>
+        <div class="card-body" id="scan-bars"><!-- injected --></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span>🗂</span><span class="card-title">Verzeichnis-Übersicht</span></div>
+        <div class="card-body" id="scan-dirs"><!-- injected --></div>
+      </div>
+    </div>
+
+    <!-- Orphan files -->
+    <div class="card" style="margin-top:12px">
+      <div class="card-head">
+        <span>⚠</span>
+        <span class="card-title">Waisen-Dateien</span>
+        <span class="badge badge-orange ml-auto" id="orphan-count">3</span>
+      </div>
+      <div class="card-body" id="orphan-list"><!-- injected --></div>
+    </div>
+
+    <!-- Format distribution -->
+    <div class="card" style="margin-top:12px">
+      <div class="card-head"><span>📋</span><span class="card-title">Format-Verteilung</span></div>
+      <div class="card-body">
+        <div id="format-dist" style="display:flex;gap:8px;flex-wrap:wrap"><!-- injected --></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE 5: DUPLICATES
+══════════════════════════════════════════════ -->
+<div class="page" id="page-dupes">
+  <div class="toolbar">
+    <span class="toolbar-title">DUPLIKAT-FINDER</span>
+    <span style="font-size:11px;font-family:var(--mono);color:var(--text-3)">SHA256-Hash · 127 Modelle gescannt</span>
+    <button class="btn btn-green" onclick="scanDupes()" style="margin-left:8px">🔄 Neu scannen</button>
+    <div class="ml-auto row" style="gap:8px">
+      <button class="btn btn-danger" onclick="deleteAllDupes()">🗑 Alle Duplikate löschen</button>
+    </div>
+  </div>
+  <!-- Summary strip -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)">
+    <div class="stat-block"><div class="stat-lbl">Gruppen</div><div class="stat-num" style="color:var(--red)" id="d-groups">7</div></div>
+    <div class="stat-block"><div class="stat-lbl">Kopien</div><div class="stat-num" style="color:var(--orange)" id="d-copies">18</div></div>
+    <div class="stat-block"><div class="stat-lbl">Verschwendet</div><div class="stat-num" id="d-wasted">47.3 GB</div></div>
+    <div class="stat-block"><div class="stat-lbl">Einsparung möglich</div><div class="stat-num" style="color:var(--green)">↓ 16.6%</div></div>
+  </div>
+  <div class="pad scroll" style="height:calc(100vh - 52px - 45px - 68px)" id="dupes-list"><!-- injected --></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE 6: AI UNIVERSE MAP
+══════════════════════════════════════════════ -->
+<div class="page" id="page-aimap">
+  <div class="toolbar">
+    <span class="toolbar-title">AI UNIVERSE MAP</span>
+    <span style="font-size:11px;font-family:var(--mono);color:var(--text-3)">893 Knoten · 1842 Kanten</span>
+    <div class="ml-auto row" style="gap:8px">
+      <button class="btn" onclick="mapLayout('force')">⊙ Force</button>
+      <button class="btn" onclick="mapLayout('radial')">◎ Radial</button>
+      <button class="btn">⬇ Neo4j Export</button>
+      <button class="btn">⬇ Gephi Export</button>
+    </div>
+  </div>
+  <div class="map-shell">
+    <!-- Sidebar -->
+    <div class="map-sidebar">
+      <div class="map-search">
+        <input class="input" placeholder="🔍 Node suchen…" oninput="mapSearch(this.value)" />
+      </div>
+      <div class="map-sidebar-scroll" id="map-legend-list"><!-- injected --></div>
+      <div class="map-node-info" id="map-node-info" style="display:none">
+        <div class="map-info-name" id="mni-name">—</div>
+        <div class="map-info-type" id="mni-type"></div>
+        <div class="map-info-desc" id="mni-desc"></div>
+      </div>
+    </div>
+    <!-- Canvas -->
+    <div class="map-canvas-wrap" id="map-canvas-wrap">
+      <canvas id="ai-map-canvas"></canvas>
+      <div class="map-controls">
+        <button class="map-ctrl-btn" onclick="mapZoom(1.2)">+</button>
+        <button class="map-ctrl-btn" onclick="mapZoom(0.8)">−</button>
+        <button class="map-ctrl-btn" onclick="mapReset()">⊙</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATA: Master Types (from master_types.json)
+// ══════════════════════════════════════════════════════
+const MASTER_TYPES = {
+  StableDiffusion:  { folder:'Checkpoints',     label:'Checkpoints',          desc:'Vollständige Modelle (.ckpt / .safetensors)', files:42, size:118.4 },
+  Lora:             { folder:'Lora',             label:'LoRA',                 desc:'Low-Rank Adaptation Fine-Tuning',             files:31, size:62.1  },
+  LyCORIS:          { folder:'LyCORIS',          label:'LyCORIS',              desc:'LoHA, LoKr, DyLoRA etc.',                     files:8,  size:4.2   },
+  ESRGAN:           { folder:'ESRGAN',           label:'ESRGAN Upscaler',      desc:'Enhanced SRGAN Upscaler-Modelle',             files:4,  size:0.9   },
+  GFPGAN:           { folder:'GFPGAN',           label:'GFPGAN',               desc:'Gesichtsrestaurierung',                       files:2,  size:0.6   },
+  BSRGAN:           { folder:'BSRGAN',           label:'BSRGAN',               desc:'BSRGAN Upscaler',                             files:1,  size:0.3   },
+  Codeformer:       { folder:'Codeformer',       label:'CodeFormer',           desc:'Gesichtsrestaurierung',                       files:1,  size:0.2   },
+  Diffusers:        { folder:'Diffusers',        label:'Diffusers',            desc:'HuggingFace Diffusers Format',                files:3,  size:18.3  },
+  RealESRGAN:       { folder:'RealESRGAN',       label:'RealESRGAN',           desc:'Real-ESRGAN Upscaler',                        files:3,  size:0.7   },
+  SwinIR:           { folder:'SwinIR',           label:'SwinIR',               desc:'SwinIR Upscaler',                             files:2,  size:0.5   },
+  VAE:              { folder:'VAE',              label:'VAE',                  desc:'Variational Autoencoder',                     files:7,  size:19.2  },
+  ApproxVAE:        { folder:'ApproxVAE',        label:'Approx VAE',           desc:'Schnelle VAE-Vorschau',                       files:2,  size:0.1   },
+  Karlo:            { folder:'Karlo',            label:'Karlo',                desc:'Karlo Modelle',                               files:0,  size:0     },
+  DeepDanbooru:     { folder:'DeepDanbooru',     label:'DeepDanbooru',         desc:'Anime-Tag-Erkennung',                         files:1,  size:0.5   },
+  Embeddings:       { folder:'Embeddings',       label:'Embeddings',           desc:'Textual Inversion Embeddings',                files:14, size:0.8   },
+  Hypernetwork:     { folder:'hypernetworks',    label:'Hypernetworks',        desc:'Hypernetwork Fine-Tuning',                    files:5,  size:2.1   },
+  ControlNet:       { folder:'ControlNet',       label:'ControlNet',           desc:'Bedingte Steuerungsmodelle',                  files:18, size:38.6  },
+  LDSR:             { folder:'LDSR',             label:'LDSR',                 desc:'Latent Diffusion Super Resolution',           files:1,  size:2.1   },
+  TextEncoders:     { folder:'TextEncoders',     label:'Text Encoders',        desc:'CLIP / T5 Text Encoder',                      files:4,  size:8.2   },
+  ScuNET:           { folder:'ScuNET',           label:'ScuNET',               desc:'ScuNET Denoiser/Upscaler',                    files:1,  size:0.2   },
+  GLIGEN:           { folder:'GLIGEN',           label:'GLIGEN',               desc:'Räumliche Steuerung',                         files:2,  size:6.4   },
+  AfterDetailer:    { folder:'AfterDetailer',    label:'AfterDetailer',        desc:'ADetailer Erkennung',                         files:4,  size:0.6   },
+  IpAdapter:        { folder:'IpAdapter',        label:'IP-Adapter',           desc:'Image Prompt Adapter',                        files:6,  size:6.1   },
+  T2IAdapter:       { folder:'T2IAdapter',       label:'T2I-Adapter',          desc:'Text-to-Image Adapter',                       files:3,  size:4.5   },
+  IpAdapters15:     { folder:'IpAdapters15',     label:'IP-Adapter SD1.5',     desc:'IP-Adapter für SD 1.5',                       files:4,  size:5.2   },
+  IpAdaptersXl:     { folder:'IpAdaptersXl',     label:'IP-Adapter SDXL',      desc:'IP-Adapter für SDXL',                         files:3,  size:4.1   },
+  ClipVision:       { folder:'ClipVision',       label:'CLIP Vision',          desc:'CLIP Bild-Encoder',                           files:3,  size:3.7   },
+  SVD:              { folder:'SVD',              label:'SVD',                  desc:'Stable Video Diffusion',                      files:1,  size:9.6   },
+  Ultralytics:      { folder:'Ultralytics',      label:'Ultralytics (YOLO)',   desc:'Objekterkennung / Detection',                 files:5,  size:0.8   },
+  Sams:             { folder:'Sams',             label:'SAM',                  desc:'Segment Anything Model',                      files:2,  size:2.6   },
+  PromptExpansion:  { folder:'PromptExpansion',  label:'Prompt Expansion',     desc:'Automatische Prompt-Erweiterung',             files:1,  size:0.3   },
+  DiffusionModels:  { folder:'DiffusionModels',  label:'Diffusion Models',     desc:'Standalone UNet-Modelle',                     files:2,  size:12.4  },
+};
+
+// ══════════════════════════════════════════════════════
+// DATA: WebUI Profiles (from JSON files)
+// ══════════════════════════════════════════════════════
+const PROFILES = [
+  { id:'A1111', name:'Automatic1111', pkg:'stable-diffusion-webui', desc:'Original A1111 WebUI', icon:'🔵', enabled:true, color:'#58a6ff',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+      {src:['Lora'],tgt:'models/Lora'},
+      {src:['LyCORIS'],tgt:'models/LyCORIS'},
+      {src:['VAE'],tgt:'models/VAE'},
+      {src:['ApproxVAE'],tgt:'models/VAE-approx'},
+      {src:['ControlNet'],tgt:'models/ControlNet'},
+      {src:['T2IAdapter'],tgt:'models/controlnet/T2IAdapter'},
+      {src:['IpAdapter'],tgt:'models/controlnet/IpAdapter'},
+      {src:['IpAdapters15'],tgt:'models/controlnet/DiffusersIpAdapters'},
+      {src:['IpAdaptersXl'],tgt:'models/controlnet/DiffusersIpAdaptersXL'},
+      {src:['ESRGAN'],tgt:'models/ESRGAN'},
+      {src:['RealESRGAN'],tgt:'models/RealESRGAN'},
+      {src:['SwinIR'],tgt:'models/SwinIR'},
+      {src:['GFPGAN'],tgt:'models/GFPGAN'},
+      {src:['BSRGAN'],tgt:'models/BSRGAN'},
+      {src:['Codeformer'],tgt:'models/Codeformer'},
+      {src:['LDSR'],tgt:'models/LDSR'},
+      {src:['DeepDanbooru'],tgt:'models/deepbooru'},
+      {src:['Karlo'],tgt:'models/karlo'},
+      {src:['Embeddings'],tgt:'embeddings'},
+      {src:['Hypernetwork'],tgt:'models/hypernetworks'},
+      {src:['AfterDetailer'],tgt:'models/adetailer'},
+      {src:['SVD'],tgt:'models/svd'},
+      {src:['TextEncoders'],tgt:'models/text_encoder'},
+      {src:['DiffusionModels'],tgt:'models/Stable-diffusion/unet'},
+    ]},
+  { id:'ComfyUI', name:'ComfyUI', pkg:'ComfyUI', desc:'Node-basierte Diffusion Pipeline', icon:'🟢', enabled:true, color:'#00ff88',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/checkpoints'},
+      {src:['DiffusionModels'],tgt:'models/diffusion_models'},
+      {src:['Diffusers'],tgt:'models/diffusers'},
+      {src:['Lora','LyCORIS'],tgt:'models/loras'},
+      {src:['TextEncoders'],tgt:'models/clip'},
+      {src:['ClipVision'],tgt:'models/clip_vision'},
+      {src:['Embeddings'],tgt:'models/embeddings'},
+      {src:['VAE'],tgt:'models/vae'},
+      {src:['ApproxVAE'],tgt:'models/vae_approx'},
+      {src:['ControlNet','T2IAdapter'],tgt:'models/controlnet'},
+      {src:['GLIGEN'],tgt:'models/gligen'},
+      {src:['ESRGAN','RealESRGAN','SwinIR'],tgt:'models/upscale_models'},
+      {src:['Hypernetwork'],tgt:'models/hypernetworks'},
+      {src:['IpAdapter','IpAdapters15','IpAdaptersXl'],tgt:'models/ipadapter'},
+      {src:['PromptExpansion'],tgt:'models/prompt_expansion'},
+      {src:['Ultralytics'],tgt:'models/ultralytics'},
+      {src:['Sams'],tgt:'models/sams'},
+    ]},
+  { id:'Forge', name:'Forge', pkg:'stable-diffusion-webui-forge', desc:'Forge WebUI (Fork von A1111)', icon:'🔴', enabled:true, color:'#ff6b6b', inherits:'A1111',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+      {src:['Lora'],tgt:'models/Lora'},{src:['LyCORIS'],tgt:'models/LyCORIS'},
+      {src:['VAE'],tgt:'models/VAE'},{src:['ApproxVAE'],tgt:'models/VAE-approx'},
+      {src:['ControlNet'],tgt:'models/ControlNet'},
+      {src:['T2IAdapter'],tgt:'models/controlnet/T2IAdapter'},
+      {src:['IpAdapter'],tgt:'models/controlnet/IpAdapter'},
+      {src:['IpAdapters15'],tgt:'models/controlnet/DiffusersIpAdapters'},
+      {src:['IpAdaptersXl'],tgt:'models/controlnet/DiffusersIpAdaptersXL'},
+      {src:['ESRGAN'],tgt:'models/ESRGAN'},{src:['RealESRGAN'],tgt:'models/RealESRGAN'},
+      {src:['SwinIR'],tgt:'models/SwinIR'},{src:['GFPGAN'],tgt:'models/GFPGAN'},
+      {src:['Codeformer'],tgt:'models/Codeformer'},
+      {src:['Embeddings'],tgt:'embeddings'},{src:['Hypernetwork'],tgt:'models/hypernetworks'},
+      {src:['AfterDetailer'],tgt:'models/adetailer'},{src:['SVD'],tgt:'models/svd'},
+      {src:['TextEncoders'],tgt:'models/text_encoder'},
+      {src:['ClipVision'],tgt:'models/clip_vision'},
+      {src:['DiffusionModels'],tgt:'models/Stable-diffusion/unet'},
+    ]},
+  { id:'KohyaSS', name:'Kohya SS', pkg:'kohya_ss', desc:'Training Suite (LoRA, DreamBooth)', icon:'🟠', enabled:true, color:'#f0883e',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+      {src:['Lora','LyCORIS'],tgt:'models/Lora'},
+      {src:['VAE'],tgt:'models/VAE'},
+      {src:['TextEncoders'],tgt:'models/text_encoder'},
+    ]},
+  { id:'SDNext', name:'SD.Next', pkg:'vladmandatory', desc:'Vladimir fork — SD.Next', icon:'🟣', enabled:true, color:'#bc8cff',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+      {src:['Lora','LyCORIS'],tgt:'models/Lora'},
+      {src:['VAE'],tgt:'models/VAE'},
+      {src:['ControlNet'],tgt:'models/ControlNet'},
+      {src:['ESRGAN','RealESRGAN'],tgt:'models/ESRGAN'},
+      {src:['Embeddings'],tgt:'embeddings'},
+      {src:['Diffusers'],tgt:'models/diffusers'},
+    ]},
+  { id:'InvokeAI', name:'InvokeAI', pkg:'InvokeAI', desc:'Professional Studio Interface', icon:'⚡', enabled:true, color:'#e3b341',
+    rules:[
+      {src:['StableDiffusion'],tgt:'autoimport/main'},
+      {src:['Lora'],tgt:'autoimport/lora'},
+      {src:['ControlNet'],tgt:'autoimport/controlnet'},
+      {src:['TextEncoders'],tgt:'autoimport/clip'},
+      {src:['VAE'],tgt:'autoimport/vae'},
+      {src:['IpAdapter','IpAdapters15','IpAdaptersXl'],tgt:'autoimport/ip_adapter'},
+    ]},
+  { id:'Fooocus', name:'Fooocus', pkg:'Fooocus', desc:'Simplified Midjourney-style UI', icon:'🌸', enabled:true, color:'#ff9bc4',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/checkpoints'},
+      {src:['Lora'],tgt:'models/loras'},
+      {src:['VAE'],tgt:'models/vae'},
+      {src:['ControlNet'],tgt:'models/controlnet'},
+      {src:['Embeddings'],tgt:'models/embeddings'},
+      {src:['ClipVision'],tgt:'models/clip_vision'},
+      {src:['IpAdaptersXl'],tgt:'models/ip_adapters'},
+    ]},
+  { id:'FooocusMRE', name:'Fooocus MRE', pkg:'fooocus-mre', desc:'Fooocus MRE Community Fork', icon:'🌺', enabled:false, color:'#ff6ba0',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/checkpoints'},
+      {src:['Lora'],tgt:'models/loras'},{src:['VAE'],tgt:'models/vae'},
+      {src:['ControlNet'],tgt:'models/controlnet'},
+    ]},
+  { id:'Reforge', name:'Reforge', pkg:'stable-diffusion-webui-reforge', desc:'Reforge WebUI Fork', icon:'🔶', enabled:false, color:'#ffa040',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/Stable-diffusion'},
+      {src:['Lora'],tgt:'models/Lora'},{src:['VAE'],tgt:'models/VAE'},
+      {src:['ControlNet'],tgt:'models/ControlNet'},
+      {src:['Embeddings'],tgt:'embeddings'},
+    ]},
+  { id:'SwarmUI', name:'SwarmUI', pkg:'SwarmUI', desc:'Swarm-basiertes Multi-Backend UI', icon:'🐝', enabled:false, color:'#ffcc00',
+    rules:[
+      {src:['StableDiffusion'],tgt:'Models/Stable-Diffusion'},
+      {src:['Lora'],tgt:'Models/Lora'},{src:['VAE'],tgt:'Models/VAE'},
+      {src:['ControlNet'],tgt:'Models/controlnet'},
+      {src:['TextEncoders'],tgt:'Models/clip_vision'},
+      {src:['DiffusionModels'],tgt:'Models/Stable-Diffusion'},
+    ]},
+  { id:'FluxGym', name:'FluxGym', pkg:'fluxgym', desc:'Flux Model Training', icon:'⚗', enabled:false, color:'#60f0a0',
+    rules:[
+      {src:['StableDiffusion'],tgt:'models/unet'},
+      {src:['Lora'],tgt:'models/lora'},
+      {src:['TextEncoders'],tgt:'models/clip'},
+      {src:['VAE'],tgt:'models/vae'},
+    ]},
+  { id:'Ollama', name:'Ollama/LM Studio', pkg:'ollama', desc:'LLM Inference Engine', icon:'🦙', enabled:false, color:'#888',
+    rules:[
+      {src:['TextEncoders'],tgt:'models/'},
+      {src:['DiffusionModels'],tgt:'models/'},
+    ]},
+];
+
+// ══════════════════════════════════════════════════════
+// DATA: Duplicates
+// ══════════════════════════════════════════════════════
+const DUPES = [
+  { hash:'a3f8c1d2e…', size:'6.8 GB', files:['Checkpoints/dreamshaper_8.safetensors','Checkpoints/backup/dreamshaper_8_copy.safetensors'] },
+  { hash:'b72e445f…',  size:'3.9 GB', files:['Lora/detail_tweaker_xl.safetensors','ComfyUI/models/loras/detail_tweaker_xl.safetensors','Forge/models/Lora/detail_tweaker_xl.safetensors'] },
+  { hash:'cc41d29a…',  size:'4.0 GB', files:['ControlNet/control_sd15_openpose.safetensors','A1111/extensions/sd-controlnet/models/openpose.safetensors'] },
+  { hash:'d9912fe7…',  size:'7.2 GB', files:['Checkpoints/realisticVisionV51.safetensors','Checkpoints/old/realisticVision_v51.safetensors'] },
+  { hash:'e15a787b…',  size:'2.1 GB', files:['VAE/vae-ft-mse-840000.safetensors','A1111/models/VAE/vae-ft-mse.safetensors'] },
+  { hash:'f0023ab8…',  size:'9.6 GB', files:['SVD/svd_xt.safetensors','ComfyUI/models/checkpoints/svd_xt.safetensors'] },
+  { hash:'a1b2c3d4…',  size:'1.5 GB', files:['ControlNet/control_v11p_sd15_canny.safetensors','Forge/models/ControlNet/canny.safetensors'] },
+];
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+function mmNav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+  const p = document.getElementById('page-'+id); if (p) p.classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'aimap') setTimeout(initMap, 50);
+  if (id === 'matrix') buildMatrix();
+}
+
+// ══════════════════════════════════════════════════════
+// HELPER: which types are covered by a profile
+// ══════════════════════════════════════════════════════
+function profileCoversType(profile, typeKey) {
+  for (const rule of profile.rules) {
+    if (rule.src.includes(typeKey)) return rule;
+  }
+  return null;
+}
+
+function buildCoverageMap() {
+  // coverage[typeKey][profileId] = rule or null
+  const cov = {};
+  Object.keys(MASTER_TYPES).forEach(k => {
+    cov[k] = {};
+    PROFILES.forEach(p => { cov[k][p.id] = profileCoversType(p, k); });
+  });
+  return cov;
+}
+
+// ══════════════════════════════════════════════════════
+// MATRIX
+// ══════════════════════════════════════════════════════
+let activeProfileFilter = new Set(PROFILES.map(p => p.id));
+
+function buildMatrix() {
+  const cov = buildCoverageMap();
+  const visProfiles = PROFILES.filter(p => activeProfileFilter.has(p.id));
+
+  // Count stats
+  let totalLinks = 0, missingLinks = 0;
+  Object.keys(MASTER_TYPES).forEach(k => {
+    visProfiles.forEach(p => {
+      if (p.enabled) {
+        if (cov[k][p.id]) totalLinks++;
+        // Missing = type has files but no link
+        if (!cov[k][p.id] && MASTER_TYPES[k].files > 0) missingLinks++;
+      }
+    });
+  });
+
+  const el = document.getElementById('st-total'); if (el) el.textContent = totalLinks;
+  const em = document.getElementById('st-missing'); if (em) em.textContent = missingLinks;
+
+  // Build table HTML
+  const table = document.getElementById('matrix-table'); if (!table) return;
+
+  // Header
+  let html = '<thead><tr><th class="row-hdr">Master-Typ</th>';
+  visProfiles.forEach(p => {
+    html += `<th class="col-hdr">
+      <div class="col-hdr-name" style="color:${p.color}">${p.name}</div>
+      <span class="col-hdr-pkg">${p.pkg}</span>
+    </th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  // Body rows
+  Object.entries(MASTER_TYPES).forEach(([key, mt]) => {
+    const hasFiles = mt.files > 0;
+    html += `<tr>
+      <td><div class="td-type-name">
+        <span class="td-type-label">${mt.label}</span>
+        <span class="td-type-folder">${mt.folder}/</span>
+      </div></td>`;
+
+    visProfiles.forEach(p => {
+      const rule = cov[key][p.id];
+      if (!rule) {
+        html += `<td><div class="td-cell none" title="Nicht verknüpft">·</div></td>`;
+      } else if (rule.src.length > 1) {
+        // Multiple types merged into one target
+        html += `<td><div class="td-cell combined" title="${rule.src.join('+')} → ${rule.tgt}">${rule.tgt.split('/').pop()}</div></td>`;
+      } else {
+        const cls = p.enabled && hasFiles ? 'linked' : (p.enabled ? 'linked' : 'none');
+        html += `<td><div class="td-cell ${cls}" title="${rule.src[0]} → ${rule.tgt}">${p.enabled && hasFiles ? '✓' : p.enabled ? '○' : '·'}</div></td>`;
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+// Profile filter pills
+function buildProfilePills() {
+  const el = document.getElementById('profile-pills-filter'); if (!el) return;
+  el.innerHTML = PROFILES.map(p => `
+    <div class="profile-pill active" id="pill-${p.id}" onclick="toggleProfileFilter('${p.id}',this)">
+      <div class="ppill-dot"></div>
+      <span style="color:${p.color}">${p.name}</span>
+    </div>
+  `).join('');
+}
+
+function toggleProfileFilter(id, el) {
+  if (activeProfileFilter.has(id)) activeProfileFilter.delete(id);
+  else activeProfileFilter.add(id);
+  el.classList.toggle('active');
+  buildMatrix();
+}
+function toggleAllProfiles(on) {
+  PROFILES.forEach(p => {
+    if (on) activeProfileFilter.add(p.id);
+    else activeProfileFilter.delete(p.id);
+    const pill = document.getElementById('pill-'+p.id);
+    if (pill) pill.classList[on?'add':'remove']('active');
+  });
+  buildMatrix();
+}
+
+// ══════════════════════════════════════════════════════
+// PROFILES PAGE
+// ══════════════════════════════════════════════════════
+function buildProfiles() {
+  const el = document.getElementById('profiles-grid'); if (!el) return;
+  el.innerHTML = PROFILES.map(p => `
+    <div class="profile-card ${p.enabled?'enabled':''}" id="pcard-${p.id}">
+      <div class="profile-card-head">
+        <div class="profile-icon" style="background:${p.color}22;border:1px solid ${p.color}44">${p.icon}</div>
+        <div style="flex:1">
+          <div class="profile-card-title" style="color:${p.color}">${p.name}</div>
+          <div class="profile-card-desc">${p.desc}</div>
+        </div>
+        ${p.inherits ? `<span class="badge badge-yellow">↳ ${p.inherits}</span>` : ''}
+        <div class="tog ${p.enabled?'on':''}" onclick="toggleProfile('${p.id}',this)"></div>
+      </div>
+      <div class="profile-rules" id="prules-${p.id}">
+        ${p.rules.map(r => `
+          <div class="rule-item">
+            <span class="rule-src">${r.src.join('+')}</span>
+            <span class="rule-arrow">→</span>
+            <span class="rule-target">${r.tgt}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="profile-footer">
+        <span style="font-size:10px;font-family:var(--mono);color:var(--text-3)">${p.rules.length} Regeln · ${p.pkg}</span>
+        <div class="ml-auto row" style="gap:6px">
+          <button class="btn" style="font-size:11px;padding:4px 8px" onclick="applyProfile('${p.id}')">🔗 Anwenden</button>
+          <button class="btn" style="font-size:11px;padding:4px 8px">✏️ Bearbeiten</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleProfile(id, tog) {
+  const p = PROFILES.find(x => x.id === id); if (!p) return;
+  p.enabled = !p.enabled;
+  tog.classList.toggle('on');
+  const card = document.getElementById('pcard-'+id);
+  if (card) card.classList.toggle('enabled', p.enabled);
+  buildMatrix();
+}
+
+function expandAllProfiles() {
+  document.querySelectorAll('[id^="prules-"]').forEach(el => el.style.maxHeight = el.style.maxHeight ? '' : 'none');
+}
+
+// ══════════════════════════════════════════════════════
+// TYPES PAGE
+// ══════════════════════════════════════════════════════
+function buildTypes(filter='') {
+  const tbody = document.getElementById('types-tbody'); if (!tbody) return;
+  const entries = Object.entries(MASTER_TYPES).filter(([k,v]) =>
+    !filter || k.toLowerCase().includes(filter.toLowerCase()) || v.label.toLowerCase().includes(filter.toLowerCase())
+  );
+  const cov = buildCoverageMap();
+
+  tbody.innerHTML = entries.map(([key, mt]) => {
+    const covDots = PROFILES.map(p => {
+      const r = cov[key][p.id];
+      return `<div class="cov-dot ${r?'':'off'}" title="${p.name}: ${r?r.tgt:'—'}" style="${r?'background:'+p.color:''}" ></div>`;
+    }).join('');
+    return `<tr>
+      <td class="type-key">${key}</td>
+      <td class="type-folder">${mt.folder}/</td>
+      <td class="type-desc">${mt.desc}</td>
+      <td><div class="type-coverage">${covDots}</div></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${mt.files}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:${mt.size>10?'var(--green)':mt.size>0?'var(--text-2)':'var(--text-3)'};font-weight:${mt.size>10?'600':'400'}">${mt.size>0?mt.size.toFixed(1)+' GB':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const cnt = document.getElementById('types-count');
+  if (cnt) cnt.textContent = entries.length + ' Typen';
+}
+
+function filterTypes(v) { buildTypes(v); }
+
+// ══════════════════════════════════════════════════════
+// SCANNER PAGE
+// ══════════════════════════════════════════════════════
+function buildScanner() {
+  // Sort types by size
+  const sorted = Object.entries(MASTER_TYPES).filter(([,v])=>v.size>0).sort((a,b)=>b[1].size-a[1].size);
+  const maxSize = sorted[0][1].size;
+
+  const barsEl = document.getElementById('scan-bars'); if (!barsEl) return;
+  barsEl.innerHTML = sorted.map(([k,v]) => `
+    <div class="scan-bar-row">
+      <span class="scan-bar-name">${v.label}</span>
+      <div class="scan-bar-track"><div class="scan-bar-fill" style="width:${(v.size/maxSize*100).toFixed(0)}%"></div></div>
+      <span class="scan-bar-val">${v.size.toFixed(1)} GB</span>
+      <span class="scan-bar-count">${v.files}f</span>
+    </div>
+  `).join('');
+
+  // Dirs
+  const dirsEl = document.getElementById('scan-dirs'); if (!dirsEl) return;
+  const totalGb = Object.values(MASTER_TYPES).reduce((s,v)=>s+v.size, 0);
+  const totalFiles = Object.values(MASTER_TYPES).reduce((s,v)=>s+v.files, 0);
+  dirsEl.innerHTML = `
+    <div class="scan-bar-row"><span class="scan-bar-name" style="font-weight:700">TOTAL</span><div class="scan-bar-track"><div class="scan-bar-fill" style="width:100%"></div></div><span class="scan-bar-val" style="color:var(--green)">${totalGb.toFixed(1)} GB</span><span class="scan-bar-count">${totalFiles}f</span></div>
+    <div class="divider"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;font-family:var(--mono)">
+      <div style="color:var(--text-2)">Ordner:</div><div style="color:var(--text)">${Object.keys(MASTER_TYPES).length}</div>
+      <div style="color:var(--text-2)">Leer:</div><div style="color:var(--orange)">${Object.values(MASTER_TYPES).filter(v=>v.files===0).length}</div>
+      <div style="color:var(--text-2)">Belegt:</div><div style="color:var(--green)">${Object.values(MASTER_TYPES).filter(v=>v.files>0).length}</div>
+      <div style="color:var(--text-2)">Größte Datei:</div><div style="color:var(--text)">9.6 GB</div>
+    </div>
+  `;
+
+  // Orphans
+  const orphanEl = document.getElementById('orphan-list'); if (!orphanEl) return;
+  const orphans = [
+    'D:/Programme/stability_matrix/Models/Checkpoints/old_test.bin',
+    'D:/Programme/stability_matrix/Models/Lora/broken_link.pt',
+    'D:/Programme/stability_matrix/Models/VAE/unnamed_backup.tmp',
+  ];
+  orphanEl.innerHTML = orphans.map(path => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:${0?'':'var(--orange-bg)'};border:1px solid var(--border);border-radius:3px;margin-bottom:4px">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--orange)">${path}</span>
+      <button class="btn btn-danger" style="padding:3px 8px;font-size:10px">🗑</button>
+    </div>
+  `).join('');
+
+  // Formats
+  const fmtEl = document.getElementById('format-dist'); if (!fmtEl) return;
+  const formats = {safetensors:{count:108,color:'var(--green)'},ckpt:{count:8,color:'var(--blue)'},pt:{count:7,color:'var(--orange)'},pth:{count:4,color:'var(--purple)'}};
+  fmtEl.innerHTML = Object.entries(formats).map(([k,v]) => `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;min-width:80px">
+      <span style="font-family:var(--mono);font-size:18px;font-weight:700;color:${v.color}">${v.count}</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">.${k}</span>
+    </div>
+  `).join('');
+}
+
+function runScan() {
+  const btn = document.querySelector('#page-scanner .btn-green');
+  if (!btn) return;
+  btn.textContent = '⏳ Scannt…';
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = '🔍 Scan starten'; btn.disabled = false; buildScanner(); }, 2200);
+}
+
+// ══════════════════════════════════════════════════════
+// DUPES PAGE
+// ══════════════════════════════════════════════════════
+function buildDupes() {
+  const el = document.getElementById('dupes-list'); if (!el) return;
+  el.innerHTML = DUPES.map((d, gi) => `
+    <div class="dupe-group" id="dg-${gi}">
+      <div class="dupe-group-head">
+        <span class="dupe-hash">${d.hash}</span>
+        <span class="badge badge-orange">${d.files.length} Kopien</span>
+        <span class="badge badge-red">${d.size}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-left:4px">×${d.files.length-1} = ${(parseFloat(d.size)*(d.files.length-1)).toFixed(1)} GB Verschwendung</span>
+        <div class="ml-auto row" style="gap:6px">
+          <button class="btn" style="font-size:10px;padding:3px 8px" onclick="keepFirst(${gi})">✓ Erste behalten</button>
+          <button class="btn btn-danger" style="font-size:10px;padding:3px 8px" onclick="deleteDupes(${gi})">🗑 Löschen</button>
+        </div>
+      </div>
+      ${d.files.map((f,fi) => `
+        <div class="dupe-file-row ${fi===0?'master':''}">
+          <input type="checkbox" ${fi===0?'disabled checked':'checked'} />
+          <span class="dupe-file-path">${fi===0?'[MASTER] ':''}<span style="color:${fi===0?'var(--green)':'var(--text-3)'}">Models/</span>${f}</span>
+          <span class="dupe-file-size">${d.size}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+  updateDupeStats();
+}
+
+function keepFirst(gi) { DUPES[gi].files = [DUPES[gi].files[0]]; buildDupes(); }
+function deleteDupes(gi) { DUPES.splice(gi,1); buildDupes(); }
+function deleteAllDupes() { DUPES.length = 0; buildDupes(); }
+function updateDupeStats() {
+  const g=document.getElementById('d-groups'), c=document.getElementById('d-copies');
+  if(g) g.textContent=DUPES.length;
+  if(c) c.textContent=DUPES.reduce((s,d)=>s+d.files.length,0);
+  const nb=document.getElementById('nb-dupes'); if(nb) { nb.textContent=DUPES.length; }
+}
+function scanDupes() {
+  const btn=document.querySelector('#page-dupes .btn-green');
+  if(!btn) return;
+  btn.textContent='⏳ Hashing…'; btn.disabled=true;
+  setTimeout(()=>{btn.textContent='🔄 Neu scannen';btn.disabled=false;buildDupes();},3000);
+}
+
+// ══════════════════════════════════════════════════════
+// APPLY SYMLINKS
+// ══════════════════════════════════════════════════════
+function applyAll() {
+  const prog = document.getElementById('global-progress');
+  prog.classList.add('visible');
+  let p = 0;
+  const profiles = PROFILES.filter(x=>x.enabled);
+  let step = 0;
+  const iv = setInterval(() => {
+    p = Math.min(100, p + Math.random()*8);
+    const si = Math.min(profiles.length-1, Math.floor(p/100*profiles.length));
+    const bar = document.getElementById('prog-bar');
+    const pct = document.getElementById('prog-pct');
+    const stat = document.getElementById('prog-status');
+    if (bar) bar.style.width = p+'%';
+    if (pct) pct.textContent = Math.round(p)+'%';
+    if (stat && profiles[si]) stat.textContent = `Verarbeite ${profiles[si].name} (${si+1}/${profiles.length})…`;
+    if (p >= 100) {
+      clearInterval(iv);
+      if (stat) stat.textContent = '✓ Alle Symlinks angewendet';
+      setTimeout(()=>{ prog.classList.remove('visible'); buildMatrix(); }, 2000);
+    }
+  }, 150);
+}
+
+function applyProfile(id) {
+  const prog = document.getElementById('global-progress');
+  prog.classList.add('visible');
+  const stat = document.getElementById('prog-status');
+  if (stat) stat.textContent = `Verarbeite ${id}…`;
+  let p=0;
+  const iv = setInterval(()=>{
+    p=Math.min(100,p+Math.random()*18);
+    const bar=document.getElementById('prog-bar');
+    const pct=document.getElementById('prog-pct');
+    if(bar)bar.style.width=p+'%';
+    if(pct)pct.textContent=Math.round(p)+'%';
+    if(p>=100){clearInterval(iv);setTimeout(()=>{prog.classList.remove('visible');},1500);}
+  },100);
+}
+
+// ══════════════════════════════════════════════════════
+// AI UNIVERSE MAP — Force Graph
+// ══════════════════════════════════════════════════════
+const NODE_TYPES = [
+  { id:'webui',    label:'WebUI',           color:'#58a6ff', size:16, count:8  },
+  { id:'model',    label:'Modell-Typ',      color:'#00ff88', size:12, count:32 },
+  { id:'training', label:'Training',        color:'#f0883e', size:12, count:15 },
+  { id:'extension',label:'Extension/Node',  color:'#bc8cff', size:9,  count:120},
+  { id:'sampler',  label:'Sampler',         color:'#e3b341', size:9,  count:22 },
+  { id:'scheduler',label:'Scheduler',       color:'#ff9bc4', size:9,  count:18 },
+  { id:'dataset',  label:'Dataset',         color:'#60f0a0', size:8,  count:45 },
+  { id:'workflow', label:'Workflow',         color:'#ff6b6b', size:8,  count:28 },
+  { id:'concept',  label:'Konzept',          color:'#aaa',    size:7,  count:80 },
+];
+
+// Build a focused set of nodes for the canvas
+const MAP_NODES = [
+  // WebUIs
+  {id:'ui_a111',  type:'webui',   label:'A1111',       x:0, y:0, vx:0, vy:0},
+  {id:'ui_comfy', type:'webui',   label:'ComfyUI',     x:0, y:0, vx:0, vy:0},
+  {id:'ui_forge', type:'webui',   label:'Forge',       x:0, y:0, vx:0, vy:0},
+  {id:'ui_invoke',type:'webui',   label:'InvokeAI',    x:0, y:0, vx:0, vy:0},
+  {id:'ui_sdnext',type:'webui',   label:'SD.Next',     x:0, y:0, vx:0, vy:0},
+  {id:'ui_fooocus',type:'webui',  label:'Fooocus',     x:0, y:0, vx:0, vy:0},
+  {id:'ui_kohya', type:'webui',   label:'Kohya SS',    x:0, y:0, vx:0, vy:0},
+  {id:'ui_swarm', type:'webui',   label:'SwarmUI',     x:0, y:0, vx:0, vy:0},
+  // Models
+  {id:'m_sdxl',   type:'model',   label:'SDXL',        x:0, y:0, vx:0, vy:0},
+  {id:'m_sd15',   type:'model',   label:'SD1.5',       x:0, y:0, vx:0, vy:0},
+  {id:'m_flux',   type:'model',   label:'Flux.1',      x:0, y:0, vx:0, vy:0},
+  {id:'m_lora',   type:'model',   label:'LoRA',        x:0, y:0, vx:0, vy:0},
+  {id:'m_cn',     type:'model',   label:'ControlNet',  x:0, y:0, vx:0, vy:0},
+  {id:'m_vae',    type:'model',   label:'VAE',         x:0, y:0, vx:0, vy:0},
+  {id:'m_ipadap', type:'model',   label:'IP-Adapter',  x:0, y:0, vx:0, vy:0},
+  {id:'m_clip',   type:'model',   label:'CLIP',        x:0, y:0, vx:0, vy:0},
+  {id:'m_diffusers',type:'model', label:'Diffusers',   x:0, y:0, vx:0, vy:0},
+  {id:'m_upscale',type:'model',   label:'Upscaler',    x:0, y:0, vx:0, vy:0},
+  {id:'m_embed',  type:'model',   label:'Embeddings',  x:0, y:0, vx:0, vy:0},
+  {id:'m_lycoris',type:'model',   label:'LyCORIS',     x:0, y:0, vx:0, vy:0},
+  {id:'m_svd',    type:'model',   label:'SVD',         x:0, y:0, vx:0, vy:0},
+  {id:'m_gligen', type:'model',   label:'GLIGEN',      x:0, y:0, vx:0, vy:0},
+  {id:'m_sam',    type:'model',   label:'SAM',         x:0, y:0, vx:0, vy:0},
+  // Training
+  {id:'t_lora',   type:'training',label:'LoRA Train',  x:0, y:0, vx:0, vy:0},
+  {id:'t_db',     type:'training',label:'DreamBooth',  x:0, y:0, vx:0, vy:0},
+  {id:'t_ti',     type:'training',label:'Text. Inv.',  x:0, y:0, vx:0, vy:0},
+  {id:'t_flux',   type:'training',label:'Flux Finetune',x:0, y:0, vx:0, vy:0},
+  // Extensions
+  {id:'e_cn',     type:'extension',label:'ControlNet Ext',x:0, y:0, vx:0, vy:0},
+  {id:'e_adetail',type:'extension',label:'ADetailer',  x:0, y:0, vx:0, vy:0},
+  {id:'e_wd14',   type:'extension',label:'WD14 Tagger',x:0, y:0, vx:0, vy:0},
+  {id:'e_reactor',type:'extension',label:'ReActor',    x:0, y:0, vx:0, vy:0},
+  {id:'e_regional',type:'extension',label:'Regional Prompter',x:0,y:0,vx:0,vy:0},
+  {id:'e_ulti',   type:'extension',label:'Ultimate Upscale',x:0,y:0,vx:0,vy:0},
+  // Samplers
+  {id:'s_dpm2m',  type:'sampler', label:'DPM++ 2M',    x:0, y:0, vx:0, vy:0},
+  {id:'s_euler',  type:'sampler', label:'Euler a',     x:0, y:0, vx:0, vy:0},
+  {id:'s_ddim',   type:'sampler', label:'DDIM',        x:0, y:0, vx:0, vy:0},
+  {id:'s_lcm',    type:'sampler', label:'LCM',         x:0, y:0, vx:0, vy:0},
+  // Workflows
+  {id:'w_txt2img',type:'workflow',label:'txt2img',     x:0, y:0, vx:0, vy:0},
+  {id:'w_img2img',type:'workflow',label:'img2img',     x:0, y:0, vx:0, vy:0},
+  {id:'w_inpaint',type:'workflow',label:'Inpaint',     x:0, y:0, vx:0, vy:0},
+  {id:'w_hires',  type:'workflow',label:'Hires Fix',   x:0, y:0, vx:0, vy:0},
+  {id:'w_upscale',type:'workflow',label:'Img Upscale', x:0, y:0, vx:0, vy:0},
+];
+
+const MAP_EDGES = [
+  // WebUI → Model support
+  ['ui_a111','m_sd15'],['ui_a111','m_sdxl'],['ui_a111','m_lora'],['ui_a111','m_cn'],['ui_a111','m_vae'],['ui_a111','m_ipadap'],['ui_a111','m_embed'],['ui_a111','m_upscale'],
+  ['ui_comfy','m_sdxl'],['ui_comfy','m_flux'],['ui_comfy','m_sd15'],['ui_comfy','m_lora'],['ui_comfy','m_cn'],['ui_comfy','m_vae'],['ui_comfy','m_diffusers'],['ui_comfy','m_sam'],
+  ['ui_forge','m_sd15'],['ui_forge','m_sdxl'],['ui_forge','m_lora'],['ui_forge','m_cn'],['ui_forge','m_ipadap'],
+  ['ui_invoke','m_sd15'],['ui_invoke','m_sdxl'],['ui_invoke','m_lora'],['ui_invoke','m_ipadap'],['ui_invoke','m_clip'],
+  ['ui_sdnext','m_sd15'],['ui_sdnext','m_sdxl'],['ui_sdnext','m_flux'],['ui_sdnext','m_diffusers'],
+  ['ui_fooocus','m_sdxl'],['ui_fooocus','m_lora'],['ui_fooocus','m_ipadap'],['ui_fooocus','m_cn'],
+  ['ui_kohya','t_lora'],['ui_kohya','t_db'],['ui_kohya','t_ti'],['ui_kohya','t_flux'],
+  ['ui_swarm','m_sd15'],['ui_swarm','m_sdxl'],['ui_swarm','m_flux'],
+  // Model chains
+  ['m_sdxl','m_lora'],['m_sdxl','m_vae'],['m_sdxl','m_lycoris'],['m_sdxl','m_cn'],['m_sdxl','m_ipadap'],
+  ['m_sd15','m_lora'],['m_sd15','m_vae'],['m_sd15','m_cn'],['m_sd15','m_embed'],['m_sd15','m_gligen'],
+  ['m_flux','m_lora'],['m_flux','m_clip'],['m_lora','m_lycoris'],
+  // Extensions → models
+  ['e_cn','m_cn'],['e_adetail','m_sam'],['e_reactor','m_upscale'],['e_ulti','m_upscale'],
+  // WebUI → extensions
+  ['ui_a111','e_cn'],['ui_a111','e_adetail'],['ui_a111','e_wd14'],['ui_a111','e_reactor'],['ui_a111','e_regional'],['ui_a111','e_ulti'],
+  ['ui_comfy','e_cn'],['ui_comfy','e_adetail'],['ui_comfy','e_wd14'],['ui_comfy','e_reactor'],
+  // Workflows
+  ['m_sd15','w_txt2img'],['m_sd15','w_img2img'],['m_sd15','w_inpaint'],['m_sdxl','w_txt2img'],
+  ['m_cn','w_inpaint'],['m_upscale','w_hires'],['m_upscale','w_upscale'],
+  // Samplers
+  ['ui_a111','s_dpm2m'],['ui_a111','s_euler'],['ui_a111','s_ddim'],['ui_a111','s_lcm'],
+  ['ui_comfy','s_dpm2m'],['ui_comfy','s_euler'],
+];
+
+// Force simulation state
+let mapNodes = [], mapEdges = [], mapScale = 1, mapOffX = 0, mapOffY = 0;
+let mapDragging = false, mapDragStart = {x:0, y:0}, mapSelectedNode = null;
+let mapDragNode = null, mapDragOffX = 0, mapDragOffY = 0;
+let mapInitialized = false;
+
+function initMap() {
+  if (mapInitialized) { drawMap(); return; }
+  mapInitialized = true;
+
+  // Copy nodes with random initial positions
+  const wrap = document.getElementById('map-canvas-wrap');
+  const W = wrap ? wrap.offsetWidth : 800;
+  const H = wrap ? wrap.offsetHeight : 600;
+
+  mapNodes = MAP_NODES.map(n => ({
+    ...n,
+    x: W/2 + (Math.random()-0.5)*W*0.6,
+    y: H/2 + (Math.random()-0.5)*H*0.6,
+    vx: 0, vy: 0,
+  }));
+  mapEdges = MAP_EDGES.map(([s,t]) => ({s, t}));
+
+  // Build legend
+  buildMapLegend();
+
+  // Setup canvas
+  const canvas = document.getElementById('ai-map-canvas');
+  if (!canvas) return;
+  canvas.width = W; canvas.height = H;
+
+  // Mouse events
+  canvas.addEventListener('mousedown', e => {
+    const {nx, ny} = screenToMap(e.offsetX, e.offsetY, canvas);
+    const hit = mapNodes.find(n => Math.hypot(n.x-nx, n.y-ny) < nodeSize(n)+4);
+    if (hit) {
+      mapDragNode = hit;
+      mapDragOffX = hit.x - nx;
+      mapDragOffY = hit.y - ny;
+      hit.fixed = true;
+      selectNode(hit);
+    } else {
+      mapDragging = true;
+      mapDragStart = {x: e.clientX - mapOffX, y: e.clientY - mapOffY};
+      mapDragNode = null;
+    }
+  });
+  canvas.addEventListener('mousemove', e => {
+    if (mapDragNode) {
+      const {nx, ny} = screenToMap(e.offsetX, e.offsetY, canvas);
+      mapDragNode.x = nx + mapDragOffX;
+      mapDragNode.y = ny + mapDragOffY;
+      mapDragNode.vx = 0; mapDragNode.vy = 0;
+    } else if (mapDragging) {
+      mapOffX = e.clientX - mapDragStart.x;
+      mapOffY = e.clientY - mapDragStart.y;
+    }
+  });
+  canvas.addEventListener('mouseup', () => {
+    if (mapDragNode) { mapDragNode.fixed = false; mapDragNode = null; }
+    mapDragging = false;
+  });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    mapScale = Math.max(0.2, Math.min(5, mapScale * factor));
+    drawMap();
+  }, {passive:false});
+
+  // Run simulation
+  runForce();
+}
+
+function screenToMap(sx, sy, canvas) {
+  return {
+    nx: (sx - canvas.width/2 - mapOffX) / mapScale + canvas.width/2,
+    ny: (sy - canvas.height/2 - mapOffY) / mapScale + canvas.height/2,
+  };
+}
+
+function nodeSize(n) {
+  const nt = NODE_TYPES.find(t => t.id === n.type);
+  return nt ? nt.size : 8;
+}
+
+function nodeColor(n) {
+  const nt = NODE_TYPES.find(t => t.id === n.type);
+  return nt ? nt.color : '#888';
+}
+
+function runForce() {
+  const ALPHA_DECAY = 0.008;
+  let alpha = 1;
+  let frame;
+
+  function tick() {
+    if (alpha < 0.02) { drawMap(); return; }
+    const canvas = document.getElementById('ai-map-canvas');
+    if (!canvas) return;
+    const W = canvas.width, H = canvas.height;
+    const CX = W/2, CY = H/2;
+
+    // Build index
+    const idx = {};
+    mapNodes.forEach(n => idx[n.id] = n);
+
+    // Reset forces
+    mapNodes.forEach(n => { n.fx = 0; n.fy = 0; });
+
+    // Repulsion
+    for (let i=0;i<mapNodes.length;i++) {
+      for (let j=i+1;j<mapNodes.length;j++) {
+        const a=mapNodes[i], b=mapNodes[j];
+        const dx=b.x-a.x, dy=b.y-a.y;
+        const dist=Math.max(1,Math.sqrt(dx*dx+dy*dy));
+        const repel=4000/(dist*dist);
+        const nx2=dx/dist, ny2=dy/dist;
+        a.fx -= repel*nx2; a.fy -= repel*ny2;
+        b.fx += repel*nx2; b.fy += repel*ny2;
+      }
+    }
+
+    // Attraction (edges)
+    mapEdges.forEach(e => {
+      const a=idx[e.s], b=idx[e.t];
+      if (!a||!b) return;
+      const dx=b.x-a.x, dy=b.y-a.y;
+      const dist=Math.max(1,Math.sqrt(dx*dx+dy*dy));
+      const ideal=80;
+      const force=(dist-ideal)*0.04;
+      const nx2=dx/dist, ny2=dy/dist;
+      a.fx += force*nx2; a.fy += force*ny2;
+      b.fx -= force*nx2; b.fy -= force*ny2;
+    });
+
+    // Center gravity
+    mapNodes.forEach(n => {
+      n.fx += (CX - n.x) * 0.02;
+      n.fy += (CY - n.y) * 0.02;
+    });
+
+    // Integrate
+    mapNodes.forEach(n => {
+      if (n.fixed) return;
+      n.vx = (n.vx + n.fx) * 0.75;
+      n.vy = (n.vy + n.fy) * 0.75;
+      n.x += n.vx; n.y += n.vy;
+    });
+
+    alpha *= (1-ALPHA_DECAY);
+    drawMap();
+    frame = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function drawMap() {
+  const canvas = document.getElementById('ai-map-canvas'); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  ctx.save();
+  ctx.translate(W/2 + mapOffX, H/2 + mapOffY);
+  ctx.scale(mapScale, mapScale);
+  ctx.translate(-W/2, -H/2);
+
+  // Edges
+  const idx = {};
+  mapNodes.forEach(n => idx[n.id] = n);
+  mapEdges.forEach(e => {
+    const a=idx[e.s], b=idx[e.t];
+    if (!a||!b) return;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = 'rgba(48,54,61,0.8)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Nodes
+  mapNodes.forEach(n => {
+    const r = nodeSize(n);
+    const col = nodeColor(n);
+    const isSelected = mapSelectedNode && mapSelectedNode.id === n.id;
+
+    if (isSelected) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r+5, 0, Math.PI*2);
+      ctx.fillStyle = col+'33';
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI*2);
+    ctx.fillStyle = col+'22';
+    ctx.strokeStyle = col;
+    ctx.lineWidth = isSelected ? 2.5 : 1.5;
+    ctx.fill();
+    ctx.stroke();
+
+    if (mapScale > 0.6 || r >= 12) {
+      ctx.fillStyle = col;
+      ctx.font = `${Math.max(9, r*0.9)}px IBM Plex Mono, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(n.label, n.x, n.y + r + 8);
+    }
+  });
+
+  ctx.restore();
+}
+
+function selectNode(node) {
+  mapSelectedNode = node;
+  const info = document.getElementById('map-node-info');
+  const name = document.getElementById('mni-name');
+  const type = document.getElementById('mni-type');
+  const desc = document.getElementById('mni-desc');
+  if (info) info.style.display = '';
+  if (name) { name.textContent = node.label; name.style.color = nodeColor(node); }
+  if (type) { const nt = NODE_TYPES.find(t=>t.id===node.type); type.textContent = nt ? nt.label : node.type; type.style.color = nodeColor(node); }
+  if (desc) {
+    const edgeCount = mapEdges.filter(e=>e.s===node.id||e.t===node.id).length;
+    desc.textContent = `${edgeCount} Verbindungen`;
+  }
+  drawMap();
+}
+
+function buildMapLegend() {
+  const el = document.getElementById('map-legend-list'); if (!el) return;
+  el.innerHTML = NODE_TYPES.map(nt => `
+    <div class="map-node-type" onclick="filterMapType('${nt.id}',this)">
+      <div class="map-nt-label">
+        <div class="map-nt-dot" style="background:${nt.color};box-shadow:0 0 4px ${nt.color}"></div>
+        <span>${nt.label}</span>
+      </div>
+      <span class="map-nt-count">${nt.count}</span>
+    </div>
+  `).join('');
+}
+
+function mapSearch(v) {
+  if (!v) { mapNodes.forEach(n => n.hidden=false); drawMap(); return; }
+  mapNodes.forEach(n => n.hidden = !n.label.toLowerCase().includes(v.toLowerCase()));
+  drawMap();
+}
+function mapZoom(f) { mapScale = Math.max(0.2, Math.min(5, mapScale*f)); drawMap(); }
+function mapReset() { mapScale=1; mapOffX=0; mapOffY=0; drawMap(); }
+function mapLayout(type) { if (type==='force') runForce(); }
+function filterMapType(type, el) {
+  document.querySelectorAll('.map-node-type').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  buildProfilePills();
+  buildMatrix();
+  buildProfiles();
+  buildTypes();
+  buildScanner();
+  buildDupes();
+
+  // Handle window resize for canvas
+  window.addEventListener('resize', () => {
+    const canvas = document.getElementById('ai-map-canvas');
+    const wrap = document.getElementById('map-canvas-wrap');
+    if (canvas && wrap) { canvas.width = wrap.offsetWidth; canvas.height = wrap.offsetHeight; drawMap(); }
+  });
+});
+</script>
+<!-- Dashboard Switcher -->
+<div id="ds-switcher" style="position:fixed;bottom:20px;right:20px;z-index:9999;font-family:system-ui,sans-serif">
+  <div id="ds-menu" style="display:none;position:absolute;bottom:48px;right:0;background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:6px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+    <a href="index.html" class="ds-link" data-page="index">🌃 Cyberpunk</a>
+    <a href="gradio.html" class="ds-link" data-page="gradio">☀ Gradio Light</a>
+    <a href="control.html" class="ds-link" data-page="control">🖥 Mission Control</a>
+    <a href="manager.html" class="ds-link" data-page="manager">🗂 Model Manager</a>
+    <a href="models.html" class="ds-link" data-page="models">📰 Editorial</a>
+  </div>
+  <button onclick="document.getElementById('ds-menu').style.display=document.getElementById('ds-menu').style.display==='none'?'':'none'" style="width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#1a1a2e;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform=''">🔀</button>
+</div>
+<style>
+.ds-link{display:block;padding:8px 12px;color:#ccc;text-decoration:none;border-radius:5px;font-size:13px;transition:background 0.15s}
+.ds-link:hover{background:#2a2a4e;color:#fff}
+.ds-link.ds-active{background:#333;color:#00ff88;font-weight:600}
+</style>
+<script>(function(){var p=location.pathname.split('/').pop().replace('.html','');document.querySelectorAll('.ds-link').forEach(function(a){if(a.dataset.page===p)a.classList.add('ds-active')});})()</script>
+</body>
+</html>

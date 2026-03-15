@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyMatrix — Gradio Style</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:       #f9f9f9;
+  --surface:  #ffffff;
+  --border:   #e5e7eb;
+  --border-2: #d1d5db;
+  --text:     #111827;
+  --text-2:   #6b7280;
+  --text-3:   #9ca3af;
+  --orange:   #ff7a00;
+  --orange-2: #ff9500;
+  --orange-bg:#fff4e8;
+  --orange-bd:#fed7aa;
+  --green:    #10b981;
+  --green-bg: #d1fae5;
+  --green-bd: #a7f3d0;
+  --red:      #ef4444;
+  --red-bg:   #fee2e2;
+  --blue:     #3b82f6;
+  --blue-bg:  #eff6ff;
+  --shadow:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  --radius:   12px;
+  --font:     'DM Sans', system-ui, sans-serif;
+  --mono:     'DM Mono', 'Courier New', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── Top Header ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 56px;
+  position: sticky; top: 0; z-index: 50;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 32px;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--orange), var(--orange-2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.5px;
+}
+.logo-text {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text);
+}
+.logo-sub { font-size: 12px; color: var(--text-2); margin-left: 4px; }
+
+/* Header Tabs */
+.header-tabs {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  gap: 0;
+}
+.htab {
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.htab:hover { color: var(--text); background: var(--bg); }
+.htab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--green-bg);
+  border: 1px solid var(--green-bd);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 500;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-green 2s ease-in-out infinite;
+}
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Layout ── */
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Page (shown/hidden) ── */
+.page { display: none; flex-direction: column; gap: 20px; }
+.page.active { display: flex; }
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+}
+.card-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  flex: 1;
+}
+.card-sub {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.card-body { padding: 16px; }
+
+/* ── Stat Row ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.stat-num {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.stat-lbl {
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+/* ── Badge / Tag ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+.badge-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-bd); }
+.badge-gray { background: #f3f4f6; color: var(--text-2); border: 1px solid var(--border); }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid #fecaca; }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid #bfdbfe; }
+
+/* ── Button ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--orange);
+  color: white;
+}
+.btn-primary:hover { background: #e06e00; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,122,0,0.25); }
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-2);
+}
+.btn-secondary:hover { background: var(--bg); border-color: var(--text-2); }
+.btn-danger {
+  background: var(--red-bg);
+  color: var(--red);
+  border-color: #fecaca;
+}
+.btn-danger:hover { background: var(--red); color: white; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+.btn-ghost { background: transparent; color: var(--text-2); border-color: transparent; }
+.btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+/* ── Input ── */
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+.input {
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+.input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,0,0.1); }
+.input::placeholder { color: var(--text-3); }
+
+/* ── Grid Helpers ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-3-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; }
+.grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+
+/* ── Package Row ── */
+.pkg-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.pkg-row:last-child { border-bottom: none; padding-bottom: 0; }
+.pkg-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pkg-dot.on { background: var(--green); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); animation: pulse-green 2s infinite; }
+.pkg-dot.off { background: var(--border-2); }
+.pkg-name { font-weight: 500; font-size: 13px; flex: 1; }
+.pkg-meta { font-size: 11px; color: var(--text-2); font-family: var(--mono); }
+.pkg-url  { font-size: 11px; color: var(--blue); font-family: var(--mono); }
+
+/* ── Progress Bar ── */
+.progress {
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ── Tab Switcher inside pages ── */
+.tab-switcher {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+}
+.ts-tab {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-2);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: all 0.12s;
+  user-select: none;
+}
+.ts-tab:last-child { border-right: none; }
+.ts-tab:hover { background: var(--bg); color: var(--text); }
+.ts-tab.active { background: var(--orange); color: white; }
+
+/* ── Output Box ── */
+.output-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.7;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.output-box::-webkit-scrollbar { width: 4px; }
+.output-box::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+.out-green { color: var(--green); }
+.out-orange { color: var(--orange); }
+.out-red { color: var(--red); }
+.out-blue { color: var(--blue); }
+.out-dim { color: var(--text-3); }
+.t-cursor {
+  display: inline-block;
+  width: 7px; height: 12px;
+  background: var(--text-2);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ── Model Catalog Card ── */
+.model-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  transition: all 0.15s;
+  cursor: pointer;
+  position: relative;
+}
+.model-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-2); transform: translateY(-1px); }
+.model-card-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.model-card-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.model-card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.model-card-stat { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 3px; }
+
+/* ── Slider ── */
+.slider-wrap { display: flex; flex-direction: column; gap: 4px; }
+.slider-top { display: flex; justify-content: space-between; font-size: 12px; }
+.slider-label { font-weight: 500; color: var(--text-2); }
+.slider-val { color: var(--orange); font-weight: 600; font-family: var(--mono); }
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%; height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--orange) var(--pct, 50%), #f3f4f6 var(--pct, 50%));
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--orange);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+/* ── Toggle ── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.toggle-label { font-size: 13px; color: var(--text); font-weight: 400; }
+.toggle-sub   { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+.toggle {
+  width: 36px; height: 20px;
+  border-radius: 10px;
+  background: var(--border-2);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--orange); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: left 0.2s;
+}
+.toggle.on::after { left: 18px; }
+
+/* ── System Monitor gauges ── */
+.gauge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.gauge-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.gauge-label { font-size: 11px; font-weight: 600; color: var(--text-2); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+.gauge-val { font-size: 32px; font-weight: 600; line-height: 1; margin-bottom: 2px; }
+.gauge-unit { font-size: 12px; color: var(--text-2); margin-bottom: 10px; }
+.gauge-bar { height: 6px; background: #f3f4f6; border-radius: 3px; overflow: hidden; }
+.gauge-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* ── Separator ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page.active { animation: fadeIn 0.18s ease; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">Py</div>
+    <div>
+      <span class="logo-text">PyMatrix</span>
+      <span class="logo-sub">v2.0</span>
+    </div>
+  </div>
+
+  <nav class="header-tabs">
+    <div class="htab active" onclick="showPage('dashboard', this)">🏠 Dashboard</div>
+    <div class="htab" onclick="showPage('packages', this)">▶ Pakete</div>
+    <div class="htab" onclick="showPage('models', this)">📦 Models</div>
+    <div class="htab" onclick="showPage('downloader', this)">⬇ Downloader</div>
+    <div class="htab" onclick="showPage('sysmon', this)">📊 System</div>
+    <div class="htab" onclick="showPage('modelmanager', this)">🗂 Model Manager</div>
+    <div class="htab" onclick="showPage('settings', this)">⚙ Einstellungen</div>
+  </nav>
+
+  <div class="header-right">
+    <div class="status-chip">
+      <div class="status-dot"></div>
+      2 Pakete laufen
+    </div>
+    <button class="btn btn-secondary btn-sm">↺ Neu laden</button>
+  </div>
+</header>
+
+<!-- ── Content ── -->
+<div class="layout">
+
+  <!-- ═══ Dashboard ═══ -->
+  <div class="page active" id="page-dashboard">
+
+    <!-- Stats -->
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--orange)">6</div>
+        <div class="stat-lbl">Installierte Pakete</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--green)">2</div>
+        <div class="stat-lbl">Laufende Prozesse</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--blue)">1.4k</div>
+        <div class="stat-lbl">Modelle gesamt</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--text)">387<span style="font-size:18px"> GB</span></div>
+        <div class="stat-lbl">Disk-Nutzung</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--green); font-size:20px">✓ OK</div>
+        <div class="stat-lbl">SM Installation</div>
+      </div>
+    </div>
+
+    <div class="grid-3-2">
+      <!-- Schnellstart -->
+      <div class="card">
+        <div class="card-header">
+          <span>▶</span>
+          <span class="card-title">Schnellstart</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary btn-sm">▶▶ Alle starten</button>
+            <button class="btn btn-danger btn-sm">■■ Alle stoppen</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:8px 16px">
+
+          <div class="pkg-row">
+            <div class="pkg-dot on"></div>
+            <div style="flex:1">
+              <div class="pkg-name">SD WebUI Forge</div>
+              <div class="pkg-url">🌐 http://127.0.0.1:7860</div>
+            </div>
+            <span class="badge badge-green">● Lauft</span>
+            <button class="btn btn-secondary btn-sm" onclick="window.open('http://127.0.0.1:7860')">Browser</button>
+            <button class="btn btn-danger btn-sm">■ Stop</button>
+          </div>
+
+          <div class="pkg-row">
+            <div class="pkg-dot on"></div>
+            <div style="flex:1">
+              <div class="pkg-name">ComfyUI</div>
+              <div class="pkg-url">🌐 http://127.0.0.1:8188</div>
+            </div>
+            <span class="badge badge-green">● Lauft</span>
+            <button class="btn btn-secondary btn-sm">Browser</button>
+            <button class="btn btn-danger btn-sm">■ Stop</button>
+          </div>
+
+          <div class="pkg-row">
+            <div class="pkg-dot off"></div>
+            <div style="flex:1">
+              <div class="pkg-name">Forge Neo</div>
+              <div class="pkg-meta">dev@a1c4d88</div>
+            </div>
+            <span class="badge badge-gray">Gestoppt</span>
+            <button class="btn btn-primary btn-sm">▶ Start</button>
+          </div>
+
+          <div class="pkg-row">
+            <div class="pkg-dot off"></div>
+            <div style="flex:1">
+              <div class="pkg-name">reForge</div>
+              <div class="pkg-meta">main@b2d3e9f</div>
+            </div>
+            <span class="badge badge-gray">Gestoppt</span>
+            <button class="btn btn-primary btn-sm">▶ Start</button>
+          </div>
+
+          <div class="pkg-row">
+            <div class="pkg-dot off"></div>
+            <div style="flex:1">
+              <div class="pkg-name">A1111 WebUI</div>
+              <div class="pkg-meta">master@cc1234f</div>
+            </div>
+            <span class="badge badge-gray">Gestoppt</span>
+            <button class="btn btn-primary btn-sm">▶ Start</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- SM Info -->
+        <div class="card">
+          <div class="card-header">
+            <span>🗂</span>
+            <span class="card-title">SM Installation</span>
+            <span class="badge badge-green">✓ OK</span>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-size:12px;color:var(--text-2);width:60px;flex-shrink:0">Pfad:</span>
+              <code style="font-family:var(--mono);font-size:11px;color:var(--orange);background:var(--orange-bg);padding:2px 8px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Programme/stability_matrix</code>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-size:12px;color:var(--text-2);width:60px;flex-shrink:0">Pakete:</span>
+              <span style="font-size:13px;font-weight:500">6 installiert</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="align-self:flex-start">📂 Explorer öffnen</button>
+          </div>
+        </div>
+
+        <!-- Model Storage -->
+        <div class="card">
+          <div class="card-header">
+            <span>💾</span>
+            <span class="card-title">Modell-Speicher</span>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+                <span style="color:var(--text-2)">Checkpoints</span>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text)">203 GB</span>
+              </div>
+              <div class="progress"><div class="progress-fill" style="width:80%;background:linear-gradient(to right,var(--orange),var(--orange-2))"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+                <span style="color:var(--text-2)">LoRA</span>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text)">87 GB</span>
+              </div>
+              <div class="progress"><div class="progress-fill" style="width:34%;background:var(--blue)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+                <span style="color:var(--text-2)">ControlNet</span>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text)">45 GB</span>
+              </div>
+              <div class="progress"><div class="progress-fill" style="width:18%;background:var(--green)"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Output -->
+    <div class="card">
+      <div class="card-header">
+        <span>🖥</span>
+        <span class="card-title">System-Log</span>
+        <button class="btn btn-ghost btn-sm">Leeren</button>
+        <button class="btn btn-secondary btn-sm">📋 Kopieren</button>
+        <button class="btn btn-secondary btn-sm">Log →</button>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div class="output-box" style="border:none;border-radius:0;max-height:160px;padding:14px 16px">
+          <div><span class="out-dim">[10:32:01]</span> <span class="out-green">[Start]</span> SD WebUI Forge — Starte Prozess...</div>
+          <div><span class="out-dim">[10:32:18]</span> <span class="out-dim">[Forge]</span> Model loaded in 15.2s</div>
+          <div><span class="out-dim">[10:32:19]</span> <span class="out-blue">[Forge]</span> Running on <span class="out-orange">http://127.0.0.1:7860</span></div>
+          <div><span class="out-dim">[10:33:45]</span> <span class="out-green">[Start]</span> ComfyUI — Starte Prozess...</div>
+          <div><span class="out-dim">[10:33:58]</span> <span class="out-blue">[ComfyUI]</span> To see the GUI: <span class="out-orange">http://127.0.0.1:8188</span></div>
+          <div><span class="out-dim">[10:47:12]</span> Warte auf Eingaben... <span class="t-cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Pakete ═══ -->
+  <div class="page" id="page-packages">
+    <div class="grid-3-2">
+      <div class="card">
+        <div class="card-header">
+          <span>▶</span>
+          <span class="card-title">Installierte Pakete</span>
+          <input type="text" class="input" placeholder="🔍 Suchen..." style="width:160px;padding:4px 10px;font-size:12px" />
+        </div>
+        <div class="card-body" style="padding:8px 16px">
+          <div class="pkg-row">
+            <div class="pkg-dot on"></div>
+            <div style="flex:1">
+              <div class="pkg-name" style="color:var(--orange)">SD WebUI Forge</div>
+              <div class="pkg-url">http://127.0.0.1:7860</div>
+            </div>
+            <span class="badge badge-green">● Lauft</span>
+            <button class="btn btn-secondary btn-sm">⚙ Detail</button>
+          </div>
+          <div class="pkg-row">
+            <div class="pkg-dot on"></div>
+            <div style="flex:1">
+              <div class="pkg-name" style="color:var(--blue)">ComfyUI</div>
+              <div class="pkg-url">http://127.0.0.1:8188</div>
+            </div>
+            <span class="badge badge-green">● Lauft</span>
+            <button class="btn btn-secondary btn-sm">⚙ Detail</button>
+          </div>
+          <div class="pkg-row">
+            <div class="pkg-dot off"></div>
+            <div style="flex:1">
+              <div class="pkg-name">Forge Neo</div>
+              <div class="pkg-meta">dev@a1c4d88</div>
+            </div>
+            <span class="badge badge-gray">Gestoppt</span>
+            <button class="btn btn-primary btn-sm">▶</button>
+            <button class="btn btn-secondary btn-sm">⚙</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Panel -->
+      <div class="card" style="background:linear-gradient(135deg,var(--surface),var(--orange-bg))">
+        <div class="card-header">
+          <span style="color:var(--orange)">⚙</span>
+          <span class="card-title">SD WebUI Forge</span>
+          <span class="badge badge-green">● Lauft</span>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+            <div><span style="color:var(--text-2)">Branch:</span> <code style="font-family:var(--mono);color:var(--orange)">main</code></div>
+            <div><span style="color:var(--text-2)">Commit:</span> <code style="font-family:var(--mono)">3a7f9c2</code></div>
+            <div><span style="color:var(--text-2)">Python:</span> <code style="font-family:var(--mono)">3.10.11</code></div>
+            <div><span style="color:var(--text-2)">Port:</span> <code style="font-family:var(--mono);color:var(--blue)">7860</code></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-danger btn-sm">■ Stoppen</button>
+            <button class="btn btn-primary btn-sm">🌐 Browser</button>
+            <button class="btn btn-secondary btn-sm">📂 Explorer</button>
+          </div>
+          <div class="section-label" style="font-size:10px">Launch Args</div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px;display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">--xformers</span><span class="badge badge-green" style="font-size:10px">true</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">--api</span><span class="badge badge-green" style="font-size:10px">true</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">--port</span><span class="badge badge-blue" style="font-size:10px">7860</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">--medvram-sdxl</span><span class="badge badge-green" style="font-size:10px">true</span></div>
+          </div>
+          <button class="btn btn-secondary btn-sm" style="align-self:flex-start">💾 Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Models ═══ -->
+  <div class="page" id="page-models">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="tab-switcher">
+        <div class="ts-tab active" onclick="setTs(this)">✓ Installiert</div>
+        <div class="ts-tab" onclick="setTs(this)">Alle</div>
+        <div class="ts-tab" onclick="setTs(this)">WebUI</div>
+        <div class="ts-tab" onclick="setTs(this)">Training</div>
+      </div>
+      <input type="text" class="input" placeholder="🔍 Pakete suchen..." style="max-width:240px" />
+      <button class="btn btn-secondary btn-sm" style="margin-left:auto">↺ Aktualisieren</button>
+    </div>
+    <div class="section-label">INSTALLIERTE WEB INTERFACES (6)</div>
+    <div class="grid-3">
+      <div class="model-card">
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <span class="badge badge-orange">Checkpoint</span>
+          <span class="badge badge-blue">SDXL</span>
+          <span class="badge badge-green" style="margin-left:auto">✓ Inst.</span>
+        </div>
+        <div class="model-card-name">SD WebUI Forge</div>
+        <div class="model-card-desc">Optimierter A1111-Fork mit verbesserter Speicherverwaltung für SDXL und Flux.</div>
+        <div class="model-card-footer">
+          <span class="model-card-stat">▶ <b>Lauft</b></span>
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto">⟳ Update</button>
+        </div>
+      </div>
+      <div class="model-card">
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <span class="badge badge-blue">Nodes</span>
+          <span class="badge badge-green" style="margin-left:auto">✓ Inst.</span>
+        </div>
+        <div class="model-card-name">ComfyUI</div>
+        <div class="model-card-desc">Node-basiertes Interface für maximale Flexibilität bei Diffusion-Workflows.</div>
+        <div class="model-card-footer">
+          <span class="model-card-stat">▶ <b>Lauft</b></span>
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto">⟳ Update</button>
+        </div>
+      </div>
+      <div class="model-card">
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <span class="badge badge-orange">WebUI</span>
+          <span class="badge badge-green" style="margin-left:auto">✓ Inst.</span>
+        </div>
+        <div class="model-card-name">Forge Neo</div>
+        <div class="model-card-desc">Weiterentwicklung von Forge mit zusätzlichen Community-Features.</div>
+        <div class="model-card-footer">
+          <button class="btn btn-primary btn-sm">▶ Starten</button>
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto">⟳ Update</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-label">WEITERE PAKETE (13)</div>
+    <div class="grid-3">
+      <div class="model-card">
+        <div style="display:flex;gap:6px;margin-bottom:8px"><span class="badge badge-blue">WebUI</span></div>
+        <div class="model-card-name">InvokeAI</div>
+        <div class="model-card-desc">Production-grade Interface mit professionellem Workflow-Editor.</div>
+        <div class="model-card-footer">
+          <button class="btn btn-primary btn-sm">⬇ Installieren</button>
+        </div>
+      </div>
+      <div class="model-card">
+        <div style="display:flex;gap:6px;margin-bottom:8px"><span class="badge badge-orange">Training</span></div>
+        <div class="model-card-name">kohya_ss</div>
+        <div class="model-card-desc">GUI für LoRA/DreamBooth Training mit umfangreichen Parametern.</div>
+        <div class="model-card-footer">
+          <button class="btn btn-primary btn-sm">⬇ Installieren</button>
+        </div>
+      </div>
+      <div class="model-card">
+        <div style="display:flex;gap:6px;margin-bottom:8px"><span class="badge badge-blue">Video</span></div>
+        <div class="model-card-name">Wan2GP</div>
+        <div class="model-card-desc">Video-Generierung mit Wan2.1 — Text-to-Video & Image-to-Video.</div>
+        <div class="model-card-footer">
+          <button class="btn btn-primary btn-sm">⬇ Installieren</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Downloader ═══ -->
+  <div class="page" id="page-downloader">
+    <div class="card">
+      <div class="card-header">
+        <span>⬇</span>
+        <span class="card-title">URL eingeben</span>
+        <span class="badge badge-orange">CivitAI</span>
+        <span class="badge badge-blue">HuggingFace</span>
+      </div>
+      <div class="card-body" style="display:flex;gap:10px">
+        <input type="text" class="input" placeholder="https://civitai.com/models/4384 oder HuggingFace URL..." />
+        <button class="btn btn-primary">→ Laden</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span>⬇</span>
+        <span class="card-title">Download Queue</span>
+        <span class="badge badge-orange">1 aktiv</span>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+        <!-- Active -->
+        <div style="background:var(--orange-bg);border:1px solid var(--orange-bd);border-radius:10px;padding:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px">🧠</div>
+            <div style="flex:1">
+              <div style="font-weight:500;font-size:13px">dreamshaper_8.safetensors</div>
+              <div style="font-size:11px;color:var(--text-2)">CivitAI · Checkpoint · SD 1.5 · 2.13 GB</div>
+            </div>
+            <button class="btn btn-ghost btn-sm">✕</button>
+          </div>
+          <div class="progress" style="height:8px;margin-bottom:6px">
+            <div class="progress-fill" id="dl-bar" style="width:67%;background:linear-gradient(to right,var(--orange),var(--orange-2))"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:var(--orange);font-weight:500" id="dl-pct">67% · 1.43 GB / 2.13 GB</span>
+            <span style="color:var(--text-2)">43.2 MB/s · ~16s</span>
+          </div>
+        </div>
+        <!-- Queued -->
+        <div style="border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;opacity:0.6">
+          <div style="width:36px;height:36px;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center">🎨</div>
+          <div style="flex:1">
+            <div style="font-weight:500;font-size:13px">detail_tweaker_lora.safetensors</div>
+            <div style="font-size:11px;color:var(--text-2)">CivitAI · LoRA · 144 MB</div>
+          </div>
+          <span class="badge badge-gray">Wartend</span>
+        </div>
+        <!-- Done -->
+        <div style="border:1px solid var(--green-bd);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;background:var(--green-bg)">
+          <div style="width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center">✓</div>
+          <div style="flex:1">
+            <div style="font-weight:500;font-size:13px">v1-5-pruned.safetensors</div>
+            <div style="font-size:11px;color:var(--text-2)">HuggingFace · Checkpoint · 4.27 GB</div>
+          </div>
+          <span class="badge badge-green">✓ Fertig</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ System Monitor ═══ -->
+  <div class="page" id="page-sysmon">
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2)">
+      <div class="status-dot"></div>
+      Live — aktualisiert jede Sekunde
+    </div>
+
+    <div class="section-label">GRAFIKKARTE — NVIDIA GeForce RTX 3080</div>
+    <div class="gauge-grid">
+      <div class="gauge-card">
+        <div class="gauge-label">GPU Load</div>
+        <div class="gauge-val" id="g-gpu-load" style="color:var(--orange)">87</div>
+        <div class="gauge-unit">%</div>
+        <div class="gauge-bar"><div class="gauge-fill" id="g-gpu-bar" style="width:87%;background:linear-gradient(to right,var(--orange),var(--orange-2))"></div></div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-label">VRAM</div>
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:4px">
+          <div class="gauge-val" id="g-vram" style="color:var(--blue)">8.4</div>
+          <div class="gauge-unit">/ 10 GB</div>
+        </div>
+        <div class="gauge-bar" style="margin-top:6px"><div class="gauge-fill" id="g-vram-bar" style="width:84%;background:var(--blue)"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-2);margin-top:8px">
+          <span>Forge: <b style="color:var(--text)">6.1 GB</b></span>
+          <span>ComfyUI: <b style="color:var(--text)">2.3 GB</b></span>
+        </div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-label">GPU Temp</div>
+        <div class="gauge-val" id="g-gpu-temp" style="color:var(--green)">72</div>
+        <div class="gauge-unit">°C</div>
+        <div style="display:flex;justify-content:center;gap:14px;font-size:11px;margin-top:8px">
+          <span style="color:var(--text-2)">Max <b id="g-temp-max" style="color:var(--orange)">79°C</b></span>
+          <span style="color:var(--text-2)">Fan <b id="g-fan" style="color:var(--green)">68%</b></span>
+        </div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-label">Power</div>
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:4px">
+          <div class="gauge-val" id="g-watt" style="color:var(--red)">285</div>
+          <div class="gauge-unit">W</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-2);margin:4px 0">TDP: 320W</div>
+        <div class="gauge-bar"><div class="gauge-fill" id="g-watt-bar" style="width:89%;background:var(--red)"></div></div>
+      </div>
+    </div>
+
+    <div class="section-label">PROZESSOR &amp; RAM — Ryzen 9 5950X</div>
+    <div class="grid-3">
+      <div class="card" style="grid-column:span 2">
+        <div class="card-header">
+          <span>◉</span>
+          <span class="card-title">CPU Kerne (16C)</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--text-2)">Ø <b id="g-cpu-avg" style="color:var(--orange)">34%</b> · <span id="g-cpu-freq">3.8 GHz</span> · <span id="g-cpu-temp">52°C</span></span>
+        </div>
+        <div class="card-body">
+          <div id="g-cpu-cores" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span>▦</span>
+          <span class="card-title">RAM</span>
+          <span style="margin-left:auto;font-size:13px;font-weight:600;color:var(--green)" id="g-ram">28.4</span>
+          <span style="font-size:12px;color:var(--text-2)">/ 64 GB</span>
+        </div>
+        <div class="card-body">
+          <div class="progress" style="height:8px;margin-bottom:10px">
+            <div class="gauge-fill" id="g-ram-bar" style="width:44%;background:var(--green)"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:12px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">Forge WebUI</span><span style="font-family:var(--mono)">14.2 GB</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">ComfyUI</span><span style="font-family:var(--mono)">8.7 GB</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">System</span><span style="font-family:var(--mono)">5.5 GB</span></div>
+          </div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:8px">DDR4-3200 · 2×32 GB</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">DISK I/O &amp; NETZWERK</div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-header"><span>💽</span><span class="card-title">Disk I/O</span><code style="font-size:11px;font-family:var(--mono);color:var(--text-2)">NVMe SSD</code></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text-2)">Lesen</span><span id="g-d-read" style="font-family:var(--mono);color:var(--orange)">245 MB/s</span></div>
+            <div class="progress"><div class="gauge-fill" id="g-d-read-bar" style="width:49%;background:var(--orange)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text-2)">Schreiben</span><span id="g-d-write" style="font-family:var(--mono);color:var(--blue)">87 MB/s</span></div>
+            <div class="progress"><div class="gauge-fill" id="g-d-write-bar" style="width:17%;background:var(--blue)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text-2)">D: Freier Platz</span><span style="font-family:var(--mono)">425 GB</span></div>
+            <div class="progress"><div class="gauge-fill" style="width:79%;background:var(--red)"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>⇅</span><span class="card-title">Netzwerk</span><code style="font-size:11px;font-family:var(--mono);color:var(--text-2)">1 Gbit</code></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text-2)">↓ Download</span><span id="g-n-down" style="font-family:var(--mono);color:var(--green)">43.2 MB/s</span></div>
+            <div class="progress"><div class="gauge-fill" id="g-n-down-bar" style="width:43%;background:var(--green)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text-2)">↑ Upload</span><span id="g-n-up" style="font-family:var(--mono);color:var(--blue)">1.2 MB/s</span></div>
+            <div class="progress"><div class="gauge-fill" id="g-n-up-bar" style="width:2%;background:var(--blue)"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>~</span><span class="card-title">Verlauf (60s)</span></div>
+        <div class="card-body" style="padding:6px 12px">
+          <canvas id="g-chart" width="400" height="100" style="width:100%;height:100px"></canvas>
+          <div style="display:flex;gap:12px;font-size:10px;color:var(--text-2);margin-top:4px;justify-content:center">
+            <span style="color:var(--orange)">── GPU</span>
+            <span style="color:var(--blue)">── VRAM</span>
+            <span style="color:var(--green)">── CPU</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Settings ═══ -->
+  <div class="page" id="page-settings">
+
+    <!-- Row 1 -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span>🗂</span><span class="card-title">Stability Matrix</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="input-group">
+            <label class="input-label">SM-Root Ordner</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="input" value="D:/Programme/stability_matrix" />
+              <button class="btn btn-secondary">📂</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Modelle-Unterordner</label>
+            <input type="text" class="input" value="Models" />
+            <span style="font-size:11px;color:var(--text-3)">Relativ zu SM-Root · Standard: Models</span>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Custom Outputs-Ordner</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="input" placeholder="(Standard: Outputs/ im Paket)" />
+              <button class="btn btn-secondary">📂</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>🔑</span><span class="card-title">API Keys</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="input-group">
+            <label class="input-label">CivitAI API Key</label>
+            <div style="display:flex;gap:8px">
+              <input type="password" class="input" id="cfg-civitai" placeholder="••••••••••••••••••" />
+              <button class="btn btn-secondary" onclick="togglePw('cfg-civitai',this)">👁</button>
+            </div>
+            <span style="font-size:11px;color:var(--text-3)">Für NSFW-Inhalte und erweiterte Metadaten</span>
+          </div>
+          <div class="input-group">
+            <label class="input-label">HuggingFace Token</label>
+            <div style="display:flex;gap:8px">
+              <input type="password" class="input" id="cfg-hf" placeholder="hf_••••••••••••••••••" />
+              <button class="btn btn-secondary" onclick="togglePw('cfg-hf',this)">👁</button>
+            </div>
+            <span style="font-size:11px;color:var(--text-3)">Für private / gated Modelle</span>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Replicate API Token</label>
+            <div style="display:flex;gap:8px">
+              <input type="password" class="input" id="cfg-replicate" placeholder="r8_••••••••••••••••" />
+              <button class="btn btn-secondary" onclick="togglePw('cfg-replicate',this)">👁</button>
+            </div>
+            <span style="font-size:11px;color:var(--text-3)">Optional — für Replicate-Modelle</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span>🚀</span><span class="card-title">Start-Verhalten</span></div>
+        <div class="card-body">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Zuletzt geöffnete Seite merken</div><div class="toggle-sub">Startet beim letzten Tab statt Dashboard</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Auto-Start Pakete</div><div class="toggle-sub">Definierte Pakete beim Appstart automatisch starten</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Minimiert starten</div><div class="toggle-sub">App startet im System Tray</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="input-group" style="margin-top:12px">
+            <label class="input-label">Auto-Start Pakete (kommagetrennt)</label>
+            <input type="text" class="input" placeholder="z.B. a111, comfyui" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>⬇</span><span class="card-title">Download-Einstellungen</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="input-group">
+            <label class="input-label">Gleichzeitige Downloads</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="range" id="dl-concurrency" min="1" max="8" value="3" style="flex:1" oninput="document.getElementById('dl-con-val').textContent=this.value" />
+              <span id="dl-con-val" style="font-weight:600;color:var(--orange);min-width:18px">3</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Chunk-Größe</label>
+            <select class="input">
+              <option>4 MB</option>
+              <option selected>8 MB</option>
+              <option>16 MB</option>
+              <option>32 MB</option>
+            </select>
+          </div>
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Hash-Verifikation</div><div class="toggle-sub">SHA256 nach dem Download prüfen</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Resume Downloads</div><div class="toggle-sub">Unterbrochene Downloads fortsetzen</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Timeout (Sekunden)</label>
+            <input type="number" class="input" value="30" min="5" max="300" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span>🌐</span><span class="card-title">Netzwerk / Proxy</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Proxy verwenden</div><div class="toggle-sub">HTTP/SOCKS5 Proxy für alle Verbindungen</div></div>
+            <div class="toggle" id="proxy-toggle" onclick="this.classList.toggle('on');toggleProxy()"></div>
+          </div>
+          <div id="proxy-fields" style="display:none;flex-direction:column;gap:10px">
+            <div class="input-group">
+              <label class="input-label">Proxy URL</label>
+              <input type="text" class="input" placeholder="http://127.0.0.1:8080" />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Proxy Benutzername (optional)</label>
+              <input type="text" class="input" placeholder="user" />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Proxy Passwort (optional)</label>
+              <input type="password" class="input" placeholder="••••••" />
+            </div>
+          </div>
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">SSL-Verifikation deaktivieren</div><div class="toggle-sub">Nicht empfohlen · nur für lokale Server</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">User-Agent</label>
+            <input type="text" class="input" value="PyMatrix/2.0.0" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>📁</span><span class="card-title">Modell-Pfad-Overrides</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;color:var(--text-3);margin-bottom:2px">Überschreibt Standard-SM-Pfade pro Typ. Leer = Standard.</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 10px">
+            <div class="input-group">
+              <label class="input-label" style="font-size:11px">Checkpoints</label>
+              <input type="text" class="input" style="font-size:12px;padding:6px 10px" placeholder="Standard" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" style="font-size:11px">LoRA</label>
+              <input type="text" class="input" style="font-size:12px;padding:6px 10px" placeholder="Standard" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" style="font-size:11px">VAE</label>
+              <input type="text" class="input" style="font-size:12px;padding:6px 10px" placeholder="Standard" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" style="font-size:11px">ControlNet</label>
+              <input type="text" class="input" style="font-size:12px;padding:6px 10px" placeholder="Standard" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" style="font-size:11px">Embeddings</label>
+              <input type="text" class="input" style="font-size:12px;padding:6px 10px" placeholder="Standard" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" style="font-size:11px">Upscaler</label>
+              <input type="text" class="input" style="font-size:12px;padding:6px 10px" placeholder="Standard" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4 -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span>⚙</span><span class="card-title">Anwendungs-Einstellungen</span></div>
+        <div class="card-body">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Timestamps im Log</div><div class="toggle-sub">Zeigt Uhrzeit bei jedem Log-Eintrag</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">URL-Erkennung</div><div class="toggle-sub">WebUI-URL automatisch erkennen und Toast zeigen</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Browser beim Start öffnen</div><div class="toggle-sub">Öffnet die WebUI automatisch im Browser</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Auto-Refresh Sidebar</div><div class="toggle-sub">Laufende Pakete alle 2s aktualisieren</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Bestätigung vor Stopp</div><div class="toggle-sub">Dialog beim Beenden laufender Pakete</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Log auto-scrollen</div><div class="toggle-sub">Springt immer zum letzten Eintrag</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="input-group" style="margin-top:8px">
+            <label class="input-label">Log-Zeilenlimit</label>
+            <input type="number" class="input" value="2000" min="100" max="50000" />
+            <span style="font-size:11px;color:var(--text-3)">Ältere Einträge werden entfernt</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>🎨</span><span class="card-title">Erscheinungsbild</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Dunkles Design</div><div class="toggle-sub">Zwischen Hell/Dunkel umschalten</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Akzentfarbe</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="color" value="#ff7a00" style="width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:none" />
+              <input type="text" class="input" value="#ff7a00" style="font-family:var(--mono)" />
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Schriftgröße</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="range" min="11" max="18" value="14" style="flex:1" oninput="document.getElementById('font-size-val').textContent=this.value+'px'" />
+              <span id="font-size-val" style="font-weight:600;color:var(--orange);min-width:32px">14px</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Dashboard-Design</label>
+            <select class="input">
+              <option>Gradio (Hell)</option>
+              <option>Cyberpunk (Dunkel)</option>
+              <option>Editorial (Luxus)</option>
+            </select>
+          </div>
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Animationen</div><div class="toggle-sub">CSS-Übergänge und Mikro-Animationen</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Kompakte Ansicht</div><div class="toggle-sub">Weniger Abstand für dichte Informationsanzeige</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 5: Notifications + Performance -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span>🔔</span><span class="card-title">Benachrichtigungen</span></div>
+        <div class="card-body">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Desktop-Benachrichtigungen</div><div class="toggle-sub">System-Toasts via Windows-Benachrichtigungen</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Download abgeschlossen</div><div class="toggle-sub">Benachrichtigung wenn ein Modell fertig ist</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Paket-Absturz</div><div class="toggle-sub">Warnung wenn ein Paket unerwartet endet</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Hohe GPU-Temperatur</div><div class="toggle-sub">Warnung ab 85°C</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Sound-Effekte</div><div class="toggle-sub">Akustisches Feedback bei Aktionen</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="input-group" style="margin-top:8px">
+            <label class="input-label">Temperatur-Warnschwelle</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="range" min="60" max="100" value="85" style="flex:1" oninput="document.getElementById('temp-thresh').textContent=this.value+'°C'" />
+              <span id="temp-thresh" style="font-weight:600;color:var(--red);min-width:40px">85°C</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>⚡</span><span class="card-title">Performance</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Hardware-Beschleunigung</div><div class="toggle-sub">GPU für Dashboard-Rendering nutzen</div></div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row" style="padding:0;border:none">
+            <div><div class="toggle-label">Sysmon immer aktiv</div><div class="toggle-sub">Auch auf anderen Tabs im Hintergrund abfragen</div></div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Sysmon Intervall</label>
+            <select class="input">
+              <option>500 ms</option>
+              <option selected>1 s</option>
+              <option>2 s</option>
+              <option>5 s</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Scanner-Threads</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="range" min="1" max="16" value="4" style="flex:1" oninput="document.getElementById('scan-threads').textContent=this.value" />
+              <span id="scan-threads" style="font-weight:600;color:var(--orange);min-width:18px">4</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Hash-Chunk-Größe (Scanner)</label>
+            <select class="input">
+              <option>64 KB</option>
+              <option>256 KB</option>
+              <option selected>1 MB</option>
+              <option>4 MB</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Python-Pfad</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="input" value="python" style="font-family:var(--mono);font-size:12px" />
+              <button class="btn btn-secondary">🔍</button>
+            </div>
+            <span style="font-size:11px;color:var(--text-3)">Pfad zur python.exe oder "python" für PATH</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save / Reset -->
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn btn-primary" style="padding:10px 24px">💾 Einstellungen speichern</button>
+      <button class="btn btn-secondary" style="padding:10px 18px">↩ Zurücksetzen</button>
+      <button class="btn btn-secondary" style="padding:10px 18px">📤 Exportieren</button>
+      <button class="btn btn-secondary" style="padding:10px 18px">📥 Importieren</button>
+      <span style="margin-left:auto;font-size:12px;color:var(--text-3)">PyMatrix v2.0.0 · Gespeichert: Heute 09:42</span>
+    </div>
+  </div>
+
+  <!-- ═══ Model Manager 2.0 ═══ -->
+  <div class="page" id="page-modelmanager">
+
+    <!-- Sub-tab switcher -->
+    <div class="tab-switcher" style="margin-bottom:20px">
+      <div class="ts-tab active" onclick="mmTab('mm-folders',this)">📁 Ordner-Struktur</div>
+      <div class="ts-tab" onclick="mmTab('mm-symlinks',this)">🔗 Symlinks</div>
+      <div class="ts-tab" onclick="mmTab('mm-scanner',this)">🔍 Scanner</div>
+      <div class="ts-tab" onclick="mmTab('mm-dupes',this)">♊ Duplikate</div>
+    </div>
+
+    <!-- ── Ordner-Struktur ── -->
+    <div id="mm-folders">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-weight:600;font-size:15px">Model-Verzeichnisse</div>
+          <div style="color:var(--text-2);font-size:12px;margin-top:2px">D:/Programme/stability_matrix/Models</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="mmScanFolders()">🔄 Aktualisieren</button>
+          <button class="btn btn-secondary">📂 Im Explorer öffnen</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <!-- Summary bar -->
+        <div style="background:var(--orange-bg);border-bottom:1px solid var(--orange-bd);padding:12px 16px;display:flex;gap:24px;align-items:center">
+          <div style="display:flex;gap:4px;align-items:baseline"><span style="font-weight:700;font-size:18px;color:var(--orange)">127</span><span style="font-size:12px;color:var(--text-2)">Modelle</span></div>
+          <div style="display:flex;gap:4px;align-items:baseline"><span style="font-weight:700;font-size:18px">284.6</span><span style="font-size:12px;color:var(--text-2)">GB gesamt</span></div>
+          <div style="display:flex;gap:4px;align-items:baseline"><span style="font-weight:700;font-size:18px">11</span><span style="font-size:12px;color:var(--text-2)">Kategorien</span></div>
+          <div style="margin-left:auto;font-size:12px;color:var(--text-3)">Gescannt: 14. März 2026 · 09:42</div>
+        </div>
+
+        <!-- Folder tree table -->
+        <table style="width:100%;border-collapse:collapse" id="mm-folder-table">
+          <thead>
+            <tr style="background:var(--bg);font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">
+              <th style="padding:10px 16px;text-align:left;font-weight:500">Ordner</th>
+              <th style="padding:10px 16px;text-align:right;font-weight:500">Dateien</th>
+              <th style="padding:10px 16px;text-align:right;font-weight:500">Größe</th>
+              <th style="padding:10px 16px;text-align:right;font-weight:500">Symlinks</th>
+              <th style="padding:10px 8px;text-align:left;font-weight:500;min-width:160px">Auslastung</th>
+              <th style="padding:10px 16px"></th>
+            </tr>
+          </thead>
+          <tbody id="mm-folder-tbody">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Per-folder detail expand (hidden by default) -->
+      <div id="mm-folder-detail" class="card" style="display:none;margin-top:12px">
+        <div class="card-header" id="mm-fd-header"></div>
+        <div class="card-body" id="mm-fd-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div>
+      </div>
+    </div>
+
+    <!-- ── Symlinks ── -->
+    <div id="mm-symlinks" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-weight:600;font-size:15px">Auto-Symlink Konfiguration</div>
+          <div style="color:var(--text-2);font-size:12px;margin-top:2px">Verlinkt Modell-Ordner automatisch in installierte Pakete</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px">
+            <span style="color:var(--text-2)">Dry-Run</span>
+            <div class="toggle" id="symlink-dry-run" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <button class="btn btn-secondary" onclick="mmApplySymlinks(false)">🔍 Prüfen</button>
+          <button class="btn btn-primary" onclick="mmApplySymlinks(true)">🔗 Alle anwenden</button>
+        </div>
+      </div>
+
+      <!-- Progress (hidden) -->
+      <div id="mm-sym-progress" style="display:none;margin-bottom:16px">
+        <div class="card" style="padding:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px">
+            <span id="mm-sym-status">Verarbeite A111…</span>
+            <span id="mm-sym-pct" style="color:var(--orange);font-weight:600">45%</span>
+          </div>
+          <div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+            <div id="mm-sym-bar" style="height:100%;background:var(--orange);border-radius:3px;width:45%;transition:width 0.3s"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Package symlink cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px" id="mm-sym-cards">
+        <!-- cards injected by JS -->
+      </div>
+    </div>
+
+    <!-- ── Scanner ── -->
+    <div id="mm-scanner" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-weight:600;font-size:15px">Modell-Scanner</div>
+          <div style="color:var(--text-2);font-size:12px;margin-top:2px">Analysiert Ordner auf Größe, Formate und Anomalien</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select class="input" style="width:auto;padding:8px 14px">
+            <option>Alle Ordner</option>
+            <option>Nur Checkpoints</option>
+            <option>Nur LoRA</option>
+          </select>
+          <button class="btn btn-primary" onclick="mmRunScan()">🔍 Scan starten</button>
+        </div>
+      </div>
+
+      <!-- Scan result grid -->
+      <div id="mm-scan-results" style="display:grid;gap:12px">
+        <!-- injected by JS -->
+      </div>
+
+      <!-- Orphan panel -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">
+          <span>⚠</span>
+          <span class="card-title">Waisen-Dateien</span>
+          <span class="badge badge-orange" style="margin-left:8px" id="mm-orphan-count">3</span>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:6px" id="mm-orphan-list">
+          <!-- injected -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Duplikate ── -->
+    <div id="mm-dupes" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-weight:600;font-size:15px">Duplikat-Finder</div>
+          <div style="color:var(--text-2);font-size:12px;margin-top:2px">SHA256-Hash-Vergleich über alle Modell-Ordner</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" id="mm-dupe-scan-btn" onclick="mmScanDupes()">🔄 Neu scannen</button>
+          <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="mmDeleteSelected()">🗑 Ausgewählte löschen</button>
+        </div>
+      </div>
+
+      <!-- Dupe summary -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+        <div class="card" style="padding:14px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--red)" id="mm-d-groups">7</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:2px">Duplikat-Gruppen</div>
+        </div>
+        <div class="card" style="padding:14px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--orange)" id="mm-d-files">18</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:2px">Betroffene Dateien</div>
+        </div>
+        <div class="card" style="padding:14px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--text)" id="mm-d-wasted">47.3 GB</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:2px">Verschwendeter Speicher</div>
+        </div>
+        <div class="card" style="padding:14px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:var(--green)" id="mm-d-hashed">127</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:2px">Gescannte Modelle</div>
+        </div>
+      </div>
+
+      <!-- Dupe groups list -->
+      <div style="display:flex;flex-direction:column;gap:10px" id="mm-dupe-groups">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+  </div><!-- /page-modelmanager -->
+
+</div><!-- /layout -->
+
+<script>
+// ── Navigation ──────────────────────────────────────────
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.htab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ── Tab Switcher ───────────────────────────────────────
+function setTs(el) {
+  el.closest('.tab-switcher').querySelectorAll('.ts-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Sysmon ─────────────────────────────────────────────
+const histG = Array(60).fill(87), histV = Array(60).fill(84), histC = Array(60).fill(34);
+function rnd(b, r) { return Math.max(0, Math.min(100, b + (Math.random()-0.5)*r)); }
+
+function g(id) { return document.getElementById(id); }
+function setG(id, val, barId, pct, color) {
+  const el = g(id); if (el) el.textContent = val;
+  const bar = g(barId); if (bar) bar.style.width = pct + '%';
+  if (color && el) el.style.color = color;
+}
+
+function drawCores(data) {
+  const c = g('g-cpu-cores'); if (!c) return;
+  c.innerHTML = data.map(v => {
+    const col = v > 80 ? 'var(--red)' : v > 55 ? 'var(--orange)' : 'var(--blue)';
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:100%;height:44px;background:#f3f4f6;border-radius:4px;overflow:hidden;display:flex;flex-direction:column-reverse;border:1px solid var(--border)">
+        <div style="width:100%;background:${col};height:${v}%;transition:height 0.4s"></div>
+      </div>
+      <div style="font-size:9px;color:var(--text-2);font-family:var(--mono)">${v}%</div>
+    </div>`;
+  }).join('');
+}
+
+function drawChart() {
+  const c = g('g-chart'); if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+  [0,25,50,75,100].forEach(p => {
+    const y = H - (p/100)*H;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  });
+  [[histG,'#ff7a00'],[histV,'#3b82f6'],[histC,'#10b981']].forEach(([data, col]) => {
+    ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+    data.forEach((v,i) => {
+      const x=(i/(data.length-1))*W, y=H-(v/100)*H;
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  });
+}
+
+let cores = Array(16).fill(0).map(() => Math.round(rnd(30,35)));
+
+function updateSysmon() {
+  const gpu = Math.round(rnd(85,14));
+  const vram = (rnd(8.4,0.6)).toFixed(1);
+  const temp = Math.round(rnd(72,8));
+  const watt = Math.round(rnd(285,30));
+  const cpu  = Math.round(rnd(34,20));
+  const ram  = (rnd(28.4,2)).toFixed(1);
+
+  setG('g-gpu-load', gpu,  'g-gpu-bar',  gpu, gpu>90?'var(--red)':gpu>70?'var(--orange)':'var(--green)');
+  setG('g-vram',     vram, 'g-vram-bar', vram/10*100, 'var(--blue)');
+  setG('g-watt',     watt, 'g-watt-bar', watt/320*100, 'var(--red)');
+  if(g('g-gpu-temp')) {
+    g('g-gpu-temp').textContent = temp;
+    g('g-gpu-temp').style.color = temp>80?'var(--red)':temp>70?'var(--orange)':'var(--green)';
+  }
+  if(g('g-fan')) g('g-fan').textContent = Math.round(rnd(68,12))+'%';
+  if(g('g-cpu-avg')) g('g-cpu-avg').textContent = cpu+'%';
+  if(g('g-cpu-freq')) g('g-cpu-freq').textContent = (rnd(38,8)/10).toFixed(1)+' GHz';
+  if(g('g-cpu-temp')) g('g-cpu-temp').textContent = Math.round(rnd(52,12))+'°C';
+  if(g('g-ram'))  { g('g-ram').textContent = ram; if(g('g-ram-bar')) g('g-ram-bar').style.width = (ram/64*100)+'%'; }
+
+  const dr = Math.round(rnd(245,200)), dw = Math.round(rnd(87,80));
+  if(g('g-d-read'))  { g('g-d-read').textContent  = dr+' MB/s'; if(g('g-d-read-bar'))  g('g-d-read-bar').style.width  = (dr/500*100)+'%'; }
+  if(g('g-d-write')) { g('g-d-write').textContent = dw+' MB/s'; if(g('g-d-write-bar')) g('g-d-write-bar').style.width = (dw/500*100)+'%'; }
+  const nd = (rnd(43,30)).toFixed(1), nu = (rnd(1.2,2)).toFixed(1);
+  if(g('g-n-down')) { g('g-n-down').textContent = nd+' MB/s'; if(g('g-n-down-bar')) g('g-n-down-bar').style.width = (nd/100*100)+'%'; }
+  if(g('g-n-up'))   { g('g-n-up').textContent   = nu+' MB/s'; if(g('g-n-up-bar'))   g('g-n-up-bar').style.width   = (nu/100*100)+'%'; }
+
+  cores = cores.map(v => Math.round(rnd(v,25)));
+  drawCores(cores);
+  histG.push(gpu); histG.shift(); histV.push(vram/10*100); histV.shift(); histC.push(cpu); histC.shift();
+  drawChart();
+}
+
+// Download animation
+let dlPct = 67;
+setInterval(() => {
+  dlPct = Math.min(100, dlPct + Math.random()*1.5);
+  const bar = g('dl-bar'), lbl = g('dl-pct');
+  if(bar) bar.style.width = dlPct+'%';
+  if(lbl) lbl.textContent = Math.round(dlPct)+'% · '+((2.13*dlPct/100).toFixed(2))+' GB / 2.13 GB';
+}, 600);
+
+document.addEventListener('DOMContentLoaded', () => { drawCores(cores); drawChart(); mmInit(); });
+setInterval(updateSysmon, 1000);
+
+// ── Model Manager 2.0 ────────────────────────────────────
+function mmTab(id, el) {
+  ['mm-folders','mm-symlinks','mm-scanner','mm-dupes'].forEach(t => {
+    const el2 = document.getElementById(t);
+    if (el2) el2.style.display = 'none';
+  });
+  document.getElementById(id).style.display = '';
+  document.querySelectorAll('.tab-switcher .ts-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+// ── Folder data ──
+const MM_FOLDERS = [
+  { name:'StableDiffusion', icon:'🎨', files:42, size:'118.4 GB', syms:3, pct:42 },
+  { name:'Lora',            icon:'🎯', files:31, size:'62.1 GB',  syms:3, pct:22 },
+  { name:'ControlNet',      icon:'🕹', files:18, size:'38.6 GB',  syms:3, pct:14 },
+  { name:'VAE',             icon:'🔷', files:7,  size:'19.2 GB',  syms:3, pct:7  },
+  { name:'TextualInversion',icon:'🔤', files:14, size:'0.8 GB',   syms:2, pct:1  },
+  { name:'Hypernetwork',    icon:'🕸', files:5,  size:'2.1 GB',   syms:2, pct:1  },
+  { name:'Upscaler',        icon:'🔍', files:9,  size:'4.4 GB',   syms:3, pct:2  },
+  { name:'CLIP',            icon:'✂', files:3,  size:'8.2 GB',   syms:2, pct:3  },
+  { name:'GLIGEN',          icon:'🔲', files:2,  size:'6.4 GB',   syms:1, pct:2  },
+  { name:'Diffusers',       icon:'💧', files:4,  size:'18.3 GB',  syms:1, pct:7  },
+  { name:'IpAdapter',       icon:'🔌', files:6,  size:'6.1 GB',   syms:2, pct:2  },
+];
+
+function mmInit() {
+  renderFolderTable();
+  renderSymCards();
+  renderScanResults();
+  renderOrphans();
+  renderDupeGroups();
+}
+
+function renderFolderTable() {
+  const tbody = document.getElementById('mm-folder-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = MM_FOLDERS.map(f => `
+    <tr style="border-top:1px solid var(--border);cursor:pointer" onclick="mmShowFolderDetail('${f.name}')" class="mm-row">
+      <td style="padding:10px 16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">${f.icon}</span>
+          <div>
+            <div style="font-weight:500">${f.name}</div>
+            <div style="font-size:11px;color:var(--text-3);font-family:var(--mono)">Models/${f.name}/</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding:10px 16px;text-align:right;font-family:var(--mono);font-size:13px">${f.files}</td>
+      <td style="padding:10px 16px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:600">${f.size}</td>
+      <td style="padding:10px 16px;text-align:right">
+        <span class="badge badge-${f.syms>0?'green':'orange'}">${f.syms} Links</span>
+      </td>
+      <td style="padding:10px 8px;min-width:160px">
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;background:var(--orange);border-radius:3px;width:${f.pct}%;transition:width 0.4s"></div>
+        </div>
+      </td>
+      <td style="padding:10px 16px">
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation()">📂</button>
+          <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation()">🔗</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Row hover styling
+  document.querySelectorAll('.mm-row').forEach(r => {
+    r.addEventListener('mouseenter', () => r.style.background = 'var(--bg)');
+    r.addEventListener('mouseleave', () => r.style.background = '');
+  });
+}
+
+function mmShowFolderDetail(name) {
+  const folder = MM_FOLDERS.find(f => f.name === name);
+  if (!folder) return;
+  const det = document.getElementById('mm-folder-detail');
+  const hdr = document.getElementById('mm-fd-header');
+  const body = document.getElementById('mm-fd-body');
+  hdr.innerHTML = `<span>${folder.icon}</span><span class="card-title">${folder.name}</span><span class="badge badge-orange" style="margin-left:8px">${folder.files} Dateien · ${folder.size}</span>`;
+  // Simulate some files
+  const exts = name === 'Lora' ? ['safetensors','pt'] : name === 'VAE' ? ['safetensors','ckpt'] : ['safetensors','ckpt','pt'];
+  const fakeFiles = Array.from({length:Math.min(folder.files,8)}, (_,i) => ({
+    name: `model_${String(i+1).padStart(2,'0')}.${exts[i%exts.length]}`,
+    size: `${(Math.random()*6+0.5).toFixed(1)} GB`
+  }));
+  body.innerHTML = fakeFiles.map(f => `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:3px">
+      <div style="font-weight:500;font-size:13px;word-break:break-all">${f.name}</div>
+      <div style="font-size:11px;color:var(--text-2);font-family:var(--mono)">${f.size}</div>
+    </div>
+  `).join('');
+  det.style.display = '';
+}
+
+function mmScanFolders() {
+  const btn = event.currentTarget || document.querySelector('#mm-folders .btn-secondary');
+  if (btn) { btn.textContent = '⏳ Scannen…'; setTimeout(() => { btn.textContent = '🔄 Aktualisieren'; renderFolderTable(); }, 1800); }
+}
+
+// ── Symlinks ──
+const MM_PACKAGES = [
+  { id:'a111', name:'Automatic1111', icon:'🔵', port:7860, links:[
+    {type:'StableDiffusion', status:'ok'},{type:'Lora',status:'ok'},{type:'VAE',status:'ok'},
+    {type:'ControlNet',status:'missing'},{type:'Upscaler',status:'ok'},
+  ]},
+  { id:'comfy', name:'ComfyUI', icon:'🟢', port:8188, links:[
+    {type:'StableDiffusion',status:'ok'},{type:'Lora',status:'ok'},{type:'ControlNet',status:'ok'},
+    {type:'Upscaler',status:'missing'},{type:'VAE',status:'ok'},
+  ]},
+  { id:'kohya', name:'Kohya SS', icon:'🟠', port:7861, links:[
+    {type:'StableDiffusion',status:'ok'},{type:'Lora',status:'ok'},{type:'TextualInversion',status:'missing'},
+  ]},
+  { id:'forge', name:'Forge WebUI', icon:'🔴', port:7862, links:[
+    {type:'StableDiffusion',status:'ok'},{type:'ControlNet',status:'ok'},{type:'VAE',status:'ok'},
+  ]},
+];
+
+function renderSymCards() {
+  const el = document.getElementById('mm-sym-cards');
+  if (!el) return;
+  el.innerHTML = MM_PACKAGES.map(pkg => {
+    const okCount = pkg.links.filter(l=>l.status==='ok').length;
+    const total = pkg.links.length;
+    const allOk = okCount === total;
+    return `
+    <div class="card" style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">${pkg.icon}</span>
+          <div>
+            <div style="font-weight:600">${pkg.name}</div>
+            <div style="font-size:11px;color:var(--text-3);font-family:var(--mono)">:${pkg.port}</div>
+          </div>
+        </div>
+        <span class="badge badge-${allOk?'green':'orange'}">${okCount}/${total}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${pkg.links.map(l => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg);border-radius:6px;font-size:12px">
+            <span>${l.type}</span>
+            <span style="color:${l.status==='ok'?'var(--green)':'var(--orange)'}">
+              ${l.status==='ok'?'✓ Verlinkt':'⚠ Fehlt'}
+            </span>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-secondary" style="width:100%;margin-top:10px;font-size:12px" onclick="mmApplyPkg('${pkg.id}')">
+        ${allOk ? '✓ Alle OK' : '🔗 Fehlende anwenden'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function mmApplyPkg(id) {
+  const prog = document.getElementById('mm-sym-progress');
+  prog.style.display = '';
+  let p = 0;
+  const iv = setInterval(() => {
+    p = Math.min(100, p + Math.random()*15);
+    const bar = document.getElementById('mm-sym-bar');
+    const pct = document.getElementById('mm-sym-pct');
+    const stat = document.getElementById('mm-sym-status');
+    if (bar) bar.style.width = p + '%';
+    if (pct) pct.textContent = Math.round(p) + '%';
+    if (stat) stat.textContent = p < 50 ? 'Lese Quell-Ordner…' : p < 80 ? 'Erstelle Symlinks…' : 'Verifikation…';
+    if (p >= 100) { clearInterval(iv); setTimeout(() => { prog.style.display = 'none'; renderSymCards(); }, 800); }
+  }, 120);
+}
+
+function mmApplySymlinks(apply) {
+  if (apply) MM_PACKAGES.forEach(p => p.links.forEach(l => l.status = 'ok'));
+  mmApplyPkg('all');
+}
+
+// ── Scanner ──
+const MM_SCAN_DATA = [
+  { name:'StableDiffusion', files:42, size:118.4, formats:{safetensors:34,ckpt:8}, issues:0 },
+  { name:'Lora',            files:31, size:62.1,  formats:{safetensors:28,pt:3},   issues:1 },
+  { name:'ControlNet',      files:18, size:38.6,  formats:{safetensors:18},        issues:0 },
+  { name:'VAE',             files:7,  size:19.2,  formats:{safetensors:5,ckpt:2},  issues:0 },
+  { name:'Upscaler',        files:9,  size:4.4,   formats:{pth:6,pt:3},            issues:0 },
+];
+
+function renderScanResults() {
+  const el = document.getElementById('mm-scan-results');
+  if (!el) return;
+  const maxSize = Math.max(...MM_SCAN_DATA.map(d=>d.size));
+  el.innerHTML = MM_SCAN_DATA.map(d => {
+    const fmtStr = Object.entries(d.formats).map(([k,v])=>`<span class="badge badge-blue" style="font-size:10px">${k}: ${v}</span>`).join('');
+    return `
+    <div class="card" style="padding:14px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="font-weight:600;flex:1">${d.name}</div>
+        <div style="font-family:var(--mono);font-size:13px;font-weight:700">${d.size.toFixed(1)} GB</div>
+        <div style="font-size:12px;color:var(--text-2)">${d.files} Dateien</div>
+        ${d.issues>0?`<span class="badge badge-orange">⚠ ${d.issues} Problem</span>`:'<span class="badge badge-green">✓ OK</span>'}
+      </div>
+      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:8px">
+        <div style="height:100%;background:var(--orange);border-radius:4px;width:${(d.size/maxSize*100).toFixed(0)}%;transition:width 0.6s"></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${fmtStr}</div>
+    </div>`;
+  }).join('');
+
+  renderOrphans();
+}
+
+function renderOrphans() {
+  const el = document.getElementById('mm-orphan-list');
+  if (!el) return;
+  const orphans = [
+    'D:/Programme/stability_matrix/Models/StableDiffusion/old_test.bin',
+    'D:/Programme/stability_matrix/Models/Lora/broken_link.pt',
+    'D:/Programme/stability_matrix/Models/VAE/unnamed_backup.tmp',
+  ];
+  el.innerHTML = orphans.map(path => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--red-bg);border:1px solid #fca5a5;border-radius:8px">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--red)">${path}</div>
+      <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px;color:var(--red);border-color:var(--red)">🗑</button>
+    </div>
+  `).join('');
+}
+
+function mmRunScan() {
+  const btn = document.getElementById('mm-scanner')?.querySelector('.btn-primary');
+  if (!btn) return;
+  btn.textContent = '⏳ Scanne…';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '🔍 Scan starten';
+    btn.disabled = false;
+    renderScanResults();
+  }, 2400);
+}
+
+// ── Duplicates ──
+const MM_DUPES_DATA = [
+  { hash:'a3f8c1…', size:'6.8 GB', files:['StableDiffusion/dreamshaper_8.safetensors','StableDiffusion/backup/dreamshaper_8_copy.safetensors'] },
+  { hash:'b72e44…', size:'3.9 GB', files:['Lora/detail_tweaker.safetensors','Kohya/models/detail_tweaker.safetensors','ComfyUI/models/loras/detail_tweaker.safetensors'] },
+  { hash:'cc41d2…', size:'4.0 GB', files:['ControlNet/control_sd15_openpose.safetensors','A1111/extensions/sd-controlnet/models/openpose.safetensors'] },
+  { hash:'d9912f…', size:'7.2 GB', files:['StableDiffusion/realisticVisionV51.safetensors','StableDiffusion/old/realisticVision_v51.safetensors'] },
+  { hash:'e15a78…', size:'2.1 GB', files:['VAE/vae-ft-mse-840000-ema-pruned.safetensors','A1111/models/VAE/vae-ft-mse.safetensors'] },
+];
+
+function renderDupeGroups() {
+  const el = document.getElementById('mm-dupe-groups');
+  if (!el) return;
+  el.innerHTML = MM_DUPES_DATA.map((d, gi) => `
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;background:var(--red-bg);border-bottom:1px solid #fca5a5;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--mono);font-size:12px;color:var(--red)">SHA256: ${d.hash}</span>
+          <span class="badge badge-orange">${d.files.length} Kopien · ${d.size} pro Datei</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="mmKeepFirst(${gi})">✓ Erste behalten</button>
+          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;color:var(--red);border-color:var(--red)" onclick="mmDeleteDupes(${gi})">🗑 Duplikate löschen</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        ${d.files.map((f,fi) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);${fi===0?'background:var(--green-bg)':''}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" ${fi===0?'disabled':'checked'} style="cursor:pointer" />
+              <span style="font-family:var(--mono);font-size:11px;color:${fi===0?'var(--green)':'var(--text-2)'}">${fi===0?'[MASTER] ':''}Models/${f}</span>
+            </div>
+            <span style="font-size:11px;color:var(--text-3)">${d.size}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function mmScanDupes() {
+  const btn = document.getElementById('mm-dupe-scan-btn');
+  if (!btn) return;
+  btn.textContent = '⏳ Hashing…';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '🔄 Neu scannen';
+    btn.disabled = false;
+    renderDupeGroups();
+  }, 3000);
+}
+
+function mmKeepFirst(gi) {
+  MM_DUPES_DATA[gi].files = [MM_DUPES_DATA[gi].files[0]];
+  renderDupeGroups();
+  recalcDupeStats();
+}
+
+function mmDeleteDupes(gi) {
+  MM_DUPES_DATA.splice(gi, 1);
+  renderDupeGroups();
+  recalcDupeStats();
+}
+
+function mmDeleteSelected() {
+  MM_DUPES_DATA.length = 0;
+  renderDupeGroups();
+  recalcDupeStats();
+}
+
+function recalcDupeStats() {
+  const g = document.getElementById('mm-d-groups');
+  const f = document.getElementById('mm-d-files');
+  if (g) g.textContent = MM_DUPES_DATA.length;
+  if (f) f.textContent = MM_DUPES_DATA.reduce((s,d)=>s+d.files.length,0);
+}
+
+// ── Settings helpers ──
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function toggleProxy() {
+  const fields = document.getElementById('proxy-fields');
+  if (fields) fields.style.display = document.getElementById('proxy-toggle')?.classList.contains('on') ? 'flex' : 'none';
+}
+</script>
+<!-- Dashboard Switcher -->
+<div id="ds-switcher" style="position:fixed;bottom:20px;right:20px;z-index:9999;font-family:system-ui,sans-serif">
+  <div id="ds-menu" style="display:none;position:absolute;bottom:48px;right:0;background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:6px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+    <a href="index.html" class="ds-link" data-page="index">🌃 Cyberpunk</a>
+    <a href="gradio.html" class="ds-link" data-page="gradio">☀ Gradio Light</a>
+    <a href="control.html" class="ds-link" data-page="control">🖥 Mission Control</a>
+    <a href="manager.html" class="ds-link" data-page="manager">🗂 Model Manager</a>
+    <a href="models.html" class="ds-link" data-page="models">📰 Editorial</a>
+  </div>
+  <button onclick="document.getElementById('ds-menu').style.display=document.getElementById('ds-menu').style.display==='none'?'':'none'" style="width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#1a1a2e;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform=''">🔀</button>
+</div>
+<style>
+.ds-link{display:block;padding:8px 12px;color:#ccc;text-decoration:none;border-radius:5px;font-size:13px;transition:background 0.15s}
+.ds-link:hover{background:#2a2a4e;color:#fff}
+.ds-link.ds-active{background:#333;color:#00ff88;font-weight:600}
+</style>
+<script>(function(){var p=location.pathname.split('/').pop().replace('.html','');document.querySelectorAll('.ds-link').forEach(function(a){if(a.dataset.page===p)a.classList.add('ds-active')});})()</script>
+</body>
+</html>

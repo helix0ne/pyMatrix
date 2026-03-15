@@ -1,0 +1,22 @@
+{
+  "name": "Fooocus MRE",
+  "display_name": "Fooocus MRE",
+  "package_folder": "FooocusMre",
+  "enabled": true,
+  "description": "Fooocus MRE Variante",
+  "inherits": "Fooocus",
+  "rules": [
+    { "source_types": ["StableDiffusion"],          "target": "models/checkpoints" },
+    { "source_types": ["Diffusers"],                "target": "models/diffusers" },
+    { "source_types": ["TextEncoders"],             "target": "models/clip" },
+    { "source_types": ["GLIGEN"],                   "target": "models/gligen" },
+    { "source_types": ["ESRGAN"],                   "target": "models/upscale_models" },
+    { "source_types": ["Hypernetwork"],             "target": "models/hypernetworks" },
+    { "source_types": ["Embeddings"],               "target": "models/embeddings" },
+    { "source_types": ["VAE"],                      "target": "models/vae" },
+    { "source_types": ["ApproxVAE"],                "target": "models/vae_approx" },
+    { "source_types": ["Lora", "LyCORIS"],          "target": "models/loras" },
+    { "source_types": ["ClipVision"],               "target": "models/clip_vision" },
+    { "source_types": ["ControlNet"],               "target": "models/controlnet" }
+  ]
+}

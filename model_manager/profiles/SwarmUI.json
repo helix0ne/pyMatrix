@@ -1,0 +1,16 @@
+{
+  "name": "SwarmUI (StableSwarmUI)",
+  "display_name": "SwarmUI",
+  "package_folder": "StableSwarm",
+  "enabled": true,
+  "description": "SwarmUI - Cluster-faehige Diffusion Pipeline",
+  "rules": [
+    { "source_types": ["StableDiffusion"],          "target": "Models/Stable-Diffusion" },
+    { "source_types": ["Lora", "LyCORIS"],          "target": "Models/Lora" },
+    { "source_types": ["VAE"],                      "target": "Models/VAE" },
+    { "source_types": ["Embeddings"],               "target": "Models/Embeddings" },
+    { "source_types": ["ControlNet", "T2IAdapter"], "target": "Models/controlnet" },
+    { "source_types": ["ClipVision"],               "target": "Models/clip_vision" },
+    { "source_types": ["TextEncoders"],             "target": "Models/clip" }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "ComfyUI",
+  "display_name": "ComfyUI",
+  "package_folder": "ComfyUI",
+  "enabled": true,
+  "description": "Node-basierte Diffusion Pipeline",
+  "rules": [
+    { "source_types": ["StableDiffusion"],                          "target": "models/checkpoints" },
+    { "source_types": ["DiffusionModels"],                          "target": "models/diffusion_models" },
+    { "source_types": ["Diffusers"],                                "target": "models/diffusers" },
+    { "source_types": ["Lora", "LyCORIS"],                          "target": "models/loras" },
+    { "source_types": ["TextEncoders"],                             "target": "models/clip" },
+    { "source_types": ["ClipVision"],                               "target": "models/clip_vision" },
+    { "source_types": ["Embeddings"],                               "target": "models/embeddings" },
+    { "source_types": ["VAE"],                                      "target": "models/vae" },
+    { "source_types": ["ApproxVAE"],                                "target": "models/vae_approx" },
+    { "source_types": ["ControlNet", "T2IAdapter"],                 "target": "models/controlnet" },
+    { "source_types": ["GLIGEN"],                                   "target": "models/gligen" },
+    { "source_types": ["ESRGAN", "RealESRGAN", "SwinIR"],           "target": "models/upscale_models" },
+    { "source_types": ["Hypernetwork"],                             "target": "models/hypernetworks" },
+    { "source_types": ["IpAdapter", "IpAdapters15", "IpAdaptersXl"],"target": "models/ipadapter" },
+    { "source_types": ["PromptExpansion"],                          "target": "models/prompt_expansion" },
+    { "source_types": ["Ultralytics"],                              "target": "models/ultralytics" },
+    { "source_types": ["Sams"],                                     "target": "models/sams" }
+  ]
+}

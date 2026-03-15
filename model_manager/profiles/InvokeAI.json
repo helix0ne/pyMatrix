@@ -1,0 +1,15 @@
+{
+  "name": "InvokeAI",
+  "display_name": "InvokeAI",
+  "package_folder": "InvokeAI",
+  "enabled": true,
+  "description": "InvokeAI - Model-Registry-basierte UI",
+  "rules": [
+    { "source_types": ["StableDiffusion"],                  "target": "autoimport/main" },
+    { "source_types": ["Lora"],                             "target": "autoimport/lora" },
+    { "source_types": ["Embeddings"],                       "target": "autoimport/embedding" },
+    { "source_types": ["ControlNet"],                       "target": "autoimport/controlnet" },
+    { "source_types": ["T2IAdapter"],                       "target": "autoimport/t2i_adapter" },
+    { "source_types": ["IpAdapters15", "IpAdaptersXl", "ClipVision"], "target": "models/any/clip_vision" }
+  ]
+}

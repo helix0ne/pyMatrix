@@ -1,0 +1,8 @@
+{
+  "name": "kohya_ss",
+  "display_name": "Kohya GUI",
+  "package_folder": "kohya_ss",
+  "enabled": false,
+  "description": "Kohya GUI - LoRA Training Tool (keine automatischen Symlinks)",
+  "rules": []
+}

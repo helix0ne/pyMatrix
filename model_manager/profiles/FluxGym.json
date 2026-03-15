@@ -1,0 +1,12 @@
+{
+  "name": "FluxGym",
+  "display_name": "FluxGym",
+  "package_folder": "FluxGym",
+  "enabled": true,
+  "description": "FluxGym - Training fuer Flux-Modelle",
+  "rules": [
+    { "source_types": ["TextEncoders"],   "target": "models/clip" },
+    { "source_types": ["DiffusionModels"],"target": "models/unet" },
+    { "source_types": ["VAE"],            "target": "models/vae" }
+  ]
+}

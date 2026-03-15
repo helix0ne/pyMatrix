@@ -1,0 +1,19 @@
+# PyMatrix + SD Model Manager — Python-Abhängigkeiten
+# Python >= 3.10 erforderlich
+#
+# Installation:
+#   pip install -r requirements.txt
+
+# ── GUI Framework ──────────────────────────────────────────────
+customtkinter>=5.2.0
+
+# ── HTTP / Downloads ───────────────────────────────────────────
+requests>=2.28.0          # CivitAI & HuggingFace API (optional, urllib Fallback vorhanden)
+
+# ── Alles andere ist Python stdlib ────────────────────────────
+# json, os, sys, subprocess, threading, pathlib, zipfile,
+# urllib.request, hashlib, shutil, dataclasses, typing
+
+# ── Optionale Extras ───────────────────────────────────────────
+# pillow>=10.0.0          # Bild-Thumbnails in der UI (zukünftig)
+# keyring>=24.0.0         # Sichere API-Key-Speicherung (Empfehlung)

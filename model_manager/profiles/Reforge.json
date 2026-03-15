@@ -1,0 +1,30 @@
+{
+  "name": "Stable Diffusion WebUI reForge",
+  "display_name": "reForge",
+  "package_folder": "stable-diffusion-webui-reForge",
+  "enabled": true,
+  "description": "ReForge (Fork von Forge)",
+  "inherits": "Forge",
+  "rules": [
+    { "source_types": ["StableDiffusion"],          "target": "models/Stable-diffusion" },
+    { "source_types": ["Lora"],                     "target": "models/Lora" },
+    { "source_types": ["LyCORIS"],                  "target": "models/LyCORIS" },
+    { "source_types": ["VAE"],                      "target": "models/VAE" },
+    { "source_types": ["ApproxVAE"],                "target": "models/VAE-approx" },
+    { "source_types": ["ControlNet"],               "target": "models/ControlNet" },
+    { "source_types": ["T2IAdapter"],               "target": "models/controlnet/T2IAdapter" },
+    { "source_types": ["IpAdapter"],                "target": "models/controlnet/IpAdapter" },
+    { "source_types": ["IpAdapters15"],             "target": "models/controlnet/DiffusersIpAdapters" },
+    { "source_types": ["IpAdaptersXl"],             "target": "models/controlnet/DiffusersIpAdaptersXL" },
+    { "source_types": ["ESRGAN"],                   "target": "models/ESRGAN" },
+    { "source_types": ["RealESRGAN"],               "target": "models/RealESRGAN" },
+    { "source_types": ["SwinIR"],                   "target": "models/SwinIR" },
+    { "source_types": ["GFPGAN"],                   "target": "models/GFPGAN" },
+    { "source_types": ["Codeformer"],               "target": "models/Codeformer" },
+    { "source_types": ["Embeddings"],               "target": "embeddings" },
+    { "source_types": ["Hypernetwork"],             "target": "models/hypernetworks" },
+    { "source_types": ["TextEncoders"],             "target": "models/text_encoder" },
+    { "source_types": ["ClipVision"],               "target": "models/clip_vision" },
+    { "source_types": ["DiffusionModels"],          "target": "models/Stable-diffusion/unet" }
+  ]
+}
