@@ -5,7 +5,6 @@ Laedt GitHub-Archive, entpackt, erstellt venv, installiert Requirements.
 
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -17,6 +16,15 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from packages_catalog import PackageDef, PACKAGE_CATALOG
+
+# Shared constants
+try:
+    from pymatrix.utils import CHUNK_SIZE, BYTES_PER_MB, TIMEOUT_MEDIUM, TIMEOUT_INSTALL
+except ImportError:
+    CHUNK_SIZE = 65536
+    BYTES_PER_MB = 1_048_576
+    TIMEOUT_MEDIUM = 120
+    TIMEOUT_INSTALL = 600
 
 
 # ── Fortschritts-Callback-Typen ──────────────────────────────────────
@@ -68,7 +76,7 @@ def _download_file(url: str, dest: Path,
         with urllib.request.urlopen(req, timeout=120) as response:
             total = int(response.headers.get("Content-Length", 0))
             downloaded = 0
-            chunk = 65536  # 64 KB
+            chunk = CHUNK_SIZE
 
             with open(dest, "wb") as f:
                 while True:
@@ -447,7 +455,7 @@ class SharedFolderManager:
                 import ctypes
                 attrs = ctypes.windll.kernel32.GetFileAttributesW(str(path))
                 return bool(attrs & 0x400)  # FILE_ATTRIBUTE_REPARSE_POINT
-            except Exception:
+            except (OSError, AttributeError, ValueError):
                 pass
         return False
 
@@ -476,5 +484,5 @@ class SharedFolderManager:
                 )
             else:
                 link.unlink()
-        except Exception:
-            pass
+        except OSError:
+            pass  # Link bereits entfernt oder nicht vorhanden

@@ -117,8 +117,8 @@ def is_windows() -> bool:
 
 def is_junction_or_symlink(path: Path) -> bool:
     try:
-        return path.is_symlink() or (is_windows() and path.stat().st_reparse_tag == 0xa0000003)
-    except Exception:
+        return path.is_symlink() or (is_windows() and path.stat().st_reparse_tag != 0)
+    except (OSError, AttributeError):
         return path.is_symlink()
 
 

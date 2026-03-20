@@ -11,8 +11,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 from urllib.request import Request, urlopen
-from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse, unquote
+
+# Shared utilities — Vermeide Duplikation
+try:
+    from pymatrix.utils import fmt_size as _fmt_size, fmt_speed as _fmt_speed, TIMEOUT_MEDIUM, CHUNK_SIZE_LARGE
+except ImportError:
+    _fmt_size = _fmt_speed = None
+    TIMEOUT_MEDIUM = 120
+    CHUNK_SIZE_LARGE = 262144
 
 # ── CivitAI Typ → Master-Typ Mapping ──────────────────────────
 CIVITAI_TYPE_MAP = {
@@ -359,8 +366,10 @@ class DownloadManager:
 
 
 def fmt_size(bytes_val: int | float) -> str:
-    """Formatiert Bytes als menschenlesbare Größe."""
-    if bytes_val < 0:
+    """Formatiert Bytes als menschenlesbare Groesse. (Delegiert an pymatrix.utils)"""
+    if _fmt_size:
+        return _fmt_size(bytes_val)
+    if bytes_val <= 0:
         return "0 B"
     for unit in ("B", "KB", "MB", "GB", "TB"):
         if abs(bytes_val) < 1024.0:
@@ -370,7 +379,9 @@ def fmt_size(bytes_val: int | float) -> str:
 
 
 def fmt_speed(bytes_per_sec: float) -> str:
-    """Formatiert Download-Geschwindigkeit."""
+    """Formatiert Download-Geschwindigkeit. (Delegiert an pymatrix.utils)"""
+    if _fmt_speed:
+        return _fmt_speed(bytes_per_sec)
     return f"{fmt_size(bytes_per_sec)}/s"
 
 

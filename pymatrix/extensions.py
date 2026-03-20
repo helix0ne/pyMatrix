@@ -470,7 +470,7 @@ class ExtensionManager:
             )
             if proc.returncode == 0:
                 return proc.stdout.strip()
-        except Exception:
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError):
             pass
         return ""
 
@@ -515,5 +515,6 @@ class ExtensionManager:
                 [str(pip), "install", "-r", str(req_file), "--quiet"],
                 check=True, capture_output=True, text=True, timeout=300
             )
-        except Exception:
-            pass
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as e:
+            if progress_cb:
+                progress_cb("pip", -1, f"pip install fehlgeschlagen: {e}")

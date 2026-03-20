@@ -9,6 +9,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+# Shared utilities
+try:
+    from pymatrix.utils import fmt_size as _shared_fmt_size
+except ImportError:
+    _shared_fmt_size = None
+
 
 MODEL_EXTENSIONS = {
     ".safetensors", ".ckpt", ".pt", ".pth", ".bin",
@@ -203,8 +209,8 @@ def find_orphans(packages_root: str, profiles: dict,
                 if sys.platform == "win32" and target_path.exists():
                     if bool(target_path.stat().st_file_attributes & 0x400):
                         continue  # Reparse Point / Junction
-            except Exception:
-                continue
+            except (OSError, AttributeError):
+                continue  # Zugriffsfehler → ueberspringe
 
             # Echte Dateien suchen
             try:
@@ -233,7 +239,9 @@ def find_orphans(packages_root: str, profiles: dict,
 
 
 def fmt_size(bytes_val: int | float) -> str:
-    """Formatiert Bytes als menschenlesbare Groesse."""
+    """Formatiert Bytes als menschenlesbare Groesse. (Delegiert an pymatrix.utils)"""
+    if _shared_fmt_size:
+        return _shared_fmt_size(bytes_val)
     if bytes_val <= 0:
         return "0 B"
     for unit in ("B", "KB", "MB", "GB", "TB"):
